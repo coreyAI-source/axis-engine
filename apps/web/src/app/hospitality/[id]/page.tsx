@@ -7,9 +7,10 @@ import { ArrowLeft } from "lucide-react";
 import AppShell from "@/components/AppShell";
 import { apiError, AssessmentStatus, AuditDetail, AuditReport, canAudit, canReview, CorrectiveAction, criterionHeading, criterionStatement, dateTime, Evidence, hospitality, httpStatus, indicatorsWithGuidance, label, Member, Requirement, saveBlob, sourceLabel, statusLabels, statusTone, Template } from "@/lib/hospitality";
 import s from "../hospitality.module.css";
+import ReadinessPanel from "./ReadinessReport";
 
 type Command = (operation: string, input?: object) => Promise<boolean>;
-type Tab = "overview" | "assessments" | "evidence" | "findings" | "criteria" | "report";
+type Tab = "overview" | "assessments" | "evidence" | "findings" | "criteria" | "readiness" | "report";
 
 function Pill({ status }: { status: string }) {
   const tone = statusTone[status as AssessmentStatus] ?? (["closed", "complete", "approved", "effective"].includes(status) ? "green" : ["rejected", "not_effective"].includes(status) ? "red" : ["awaiting_verification", "draft", "open", "reporting"].includes(status) ? "amber" : ["in_progress"].includes(status) ? "blue" : undefined);
@@ -103,7 +104,8 @@ export default function HotelAuditPage() {
     { id: "evidence", title: "Evidence", count: data?.bundle.evidence.length },
     { id: "findings", title: "Findings & actions", count: openFindings + openActions || undefined },
     { id: "criteria", title: "Criteria" },
-    { id: "report", title: "Report" },
+    { id: "readiness", title: "Readiness report" },
+    { id: "report", title: "Audit record" },
   ];
 
   return <div className={s.page}><AppShell>
@@ -124,7 +126,7 @@ export default function HotelAuditPage() {
         <SourceNotice template={data.bundle.template} />
         <div className={s.grid}>
           <div className={s.card}><h2>Work through your hotel audit</h2>{[
-            ["evidence", "Collect evidence", "Upload files or record observations and interviews."], ["assessments", "Assess each criterion", "Check the performance indicators, choose an outcome and link evidence."], ["findings", "Resolve findings", "Assign actions, submit implementation and verify independently."], ["report", "Review and report", "Check completion requirements and download your results."],
+            ["evidence", "Collect evidence", "Upload files or record observations and interviews."], ["assessments", "Assess each criterion", "Check the performance indicators, choose an outcome and link evidence."], ["findings", "Resolve findings", "Assign actions, submit implementation and verify independently."], ["readiness", "Write the readiness report", "Fill in report details, generate the AI draft, review it and download it as Word."],
           ].map(([target, title, text], index) => <div className={s.step} key={target}><span className={s.stepNumber}>{index + 1}</span><div><button className={s.linkButton} onClick={() => setTab(target as Tab)}>{title} →</button><p>{text}</p></div></div>)}</div>
           <div className={s.card}><h2>Progress by section</h2><p className={s.small} style={{ marginTop: 4 }}>{audit.requirementIds.length} criteria in scope · {data.bundle.requirements.filter((r) => r.reviewStatus === "draft").length} awaiting review</p>
             <div className={s.bars}>{score?.categories.map((category) => <div className={s.barRow} key={category.category}><span>{category.category}</span><span className={s.small}>{category.assessed}/{category.applicable}{category.score != null ? ` · ${category.score}%` : ""}</span><progress className={s.progress} max={Math.max(category.applicable, 1)} value={category.assessed} aria-label={`${category.category} assessed`} /></div>)}</div>
@@ -137,6 +139,7 @@ export default function HotelAuditPage() {
       <section id="panel-evidence" role="tabpanel" aria-labelledby="tab-evidence" hidden={tab !== "evidence"} className={s.noPrint}><EvidencePanel evidence={data.bundle.evidence} editable={editable || me?.role_code === "process_owner"} disabled={locked} command={command} upload={upload} download={download} /></section>
       <section id="panel-findings" role="tabpanel" aria-labelledby="tab-findings" hidden={tab !== "findings"} className={s.noPrint}><FindingsPanel data={data} me={me} members={members} disabled={locked} command={command} /></section>
       <section id="panel-criteria" role="tabpanel" aria-labelledby="tab-criteria" hidden={tab !== "criteria"} className={s.noPrint}><CriteriaPanel data={data} editable={editable && !complete} reviewer={canReview(me) && !complete} disabled={locked} command={command} /></section>
+      <section id="panel-readiness" role="tabpanel" aria-labelledby="tab-readiness" hidden={tab !== "readiness"}>{tab === "readiness" && <ReadinessPanel auditId={id} version={data.version} editable={editable} fail={fail} />}</section>
       <section id="panel-report" role="tabpanel" aria-labelledby="tab-report" hidden={tab !== "report"}><ReportPanel report={data.report} bundle={data.bundle} template={data.bundle.template} editable={editable} disabled={locked} command={command} download={() => download()} /></section>
     </>}
   </AppShell></div>;

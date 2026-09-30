@@ -38,9 +38,39 @@ Use a fictional hotel, for example **Bali Practice Hotel**, and test files conta
 5. Refresh the page and reopen the audit from the list. The saved assessment and evidence should still be present. Download an attachment to confirm its contents are retained.
 6. In **Findings & actions**, assign a corrective action to a team member. Record progress, attach implementation evidence, then **Submit for verification**.
 7. Sign in as a different eligible user. Choose **Verify effective** with a meaningful note, or **Return for more work** to demonstrate failed verification. The owner and the person who submitted implementation cannot verify their own action. Close the finding after the action is properly closed.
-8. In **Report**, inspect remaining blockers, choose **Move to reporting**, and **Complete audit** when the engine permits it. Assess every criterion in scope, including a reason for each exclusion, and assign actions to findings. Actions can remain open after an audit completes; completing the audit does not mean every problem has been corrected. Download the Markdown report or use **Print / save PDF** for the browser's print dialog.
+8. In **Readiness report**, open **Report details** and fill in the cover, people interviewed, areas inspected, hotel profile, key figures and local legal items (table rows use `a | b | c`). Choose **Generate AI draft**, read every section, correct anything wrong, then **Download Word** to edit and issue it. Enter **Reviewed by** only after checking it; that removes the DRAFT banner. See [Readiness report](#readiness-report-ai-assisted) below.
+9. In **Audit record**, inspect remaining blockers, choose **Move to reporting**, and **Complete audit** when the engine permits it. Assess every criterion in scope, including a reason for each exclusion, and assign actions to findings. Actions can remain open after an audit completes; completing the audit does not mean every problem has been corrected. Download the Markdown report or use **Print / save PDF** for the browser's print dialog.
 
 Use **Team accounts** on the Hospitality list while signed in as an administrator to create a second account. A **Lead auditor** can review and verify; a **Process owner** can own corrective actions. Use distinct people for a real pilot. Merely creating two accounts for the same person does not create genuine independence. New account passwords must meet the displayed requirements (at least 12 characters).
+
+## Readiness report (AI-assisted)
+
+The **Readiness report** tab follows the AXIS Sustainability Readiness Review template: covering letter, notice, summary by pillar, scope and method, hotel profile, gap analysis, local legal items, a phased action plan, route to certification, evidence/observation registers and a coverage register for every criterion.
+
+**What is computed, not written by AI.** Every status, count, priority, evidence ID (D01 documents/records, I01 interviews, O01 observations, P01 photos) and the coverage register come straight from the saved assessments:
+
+| AXIS assessment | Report status | Priority |
+| --- | --- | --- |
+| Conforming | Met | — |
+| Observation | Met | Improvement |
+| Minor finding | Partly met | Important (Critical if the criterion is flagged critical) |
+| Major finding | Not met | Critical |
+| Minor/major supported only by interview evidence | Not evidenced | as above |
+| Not assessed | Not sampled | — |
+| Not applicable | Not applicable (provisional) | — |
+
+Pillar readiness uses (Met + ½ Partly met) ÷ assessed applicable criteria: under 40% Early, 40–74% Developing, 75%+ Advanced. These are AXIS rules awaiting your dad's approval, not GSTC rules.
+
+**What the AI drafts.** The letter summary, readiness statement, pillar headlines, "evidence seen" and "gap to close" wording, strengths, top gaps, limitations and the action plan. Actions linked to a Critical criterion go in months 1–3; the rest in months 4–6. AI output that names a criterion not in the audit is discarded, and the report lists any gap with no action under **Before issuing**. The AI is told never to invent evidence, figures or laws; section 6 only shows legal items you type in. It can still be wrong, so the report stays marked DRAFT until someone enters **Reviewed by**. Regenerating clears that sign-off, and the tab warns when the audit has changed since the draft.
+
+**Setup.** Add to `services/api/.env`, then restart the API:
+
+```
+OPENROUTER_API_KEY=sk-or-...
+OPENROUTER_MODEL=anthropic/claude-sonnet-4.5
+```
+
+Any OpenRouter model that returns JSON works; cheaper models write weaker reports. Without a key the report still builds and highlights every section you need to write yourself. Generating sends the hotel profile, assessment rationales, evidence descriptions and finding text to OpenRouter and the chosen model provider; uploaded files are never sent. Don't generate a draft for a real hotel until you are comfortable with that.
 
 Closing an action does not erase the original finding from the historical assessment. The report can continue to show a non-favourable result after the problem has been corrected because it describes the audit-time result and the later corrective work separately. Scoring and deadlines remain provisional AXIS rules, not GSTC certification rules. The 90% threshold for the provisional score is distinct from the completion checks, which require every scoped criterion to have a recorded assessment or justified exclusion. Each audit retains the engine configuration it started with.
 

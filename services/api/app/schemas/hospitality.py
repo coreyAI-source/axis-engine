@@ -99,6 +99,45 @@ class Review(StrictInput):
     note: str = Field(min_length=1, max_length=4000)
 
 
+class ReadinessProfile(StrictInput):
+    """Reviewer-entered report details. Field limits mirror readiness_report.PROFILE_FIELDS."""
+    hotel_name: str = Field(default="", max_length=255)
+    location: str = Field(default="", max_length=255)
+    hotel_contact_name: str = Field(default="", max_length=255)
+    hotel_contact_role: str = Field(default="", max_length=255)
+    purpose: str = Field(default="", max_length=500)
+    standard_edition: str = Field(default="", max_length=100)
+    standard_used: str = Field(default="", max_length=500)
+    review_date: str = Field(default="", max_length=100)
+    reviewer: str = Field(default="", max_length=255)
+    reviewer_contact: str = Field(default="", max_length=255)
+    report_reference: str = Field(default="", max_length=100)
+    report_date: str = Field(default="", max_length=100)
+    confidentiality: str = Field(default="", max_length=1000)
+    staff_present: str = Field(default="", max_length=1000)
+    review_type: str = Field(default="", max_length=255)
+    duration: str = Field(default="", max_length=255)
+    method: str = Field(default="", max_length=1000)
+    hotel_type: str = Field(default="", max_length=255)
+    rooms: str = Field(default="", max_length=255)
+    staff: str = Field(default="", max_length=255)
+    facilities: str = Field(default="", max_length=1000)
+    occupancy: str = Field(default="", max_length=255)
+    water_sources: str = Field(default="", max_length=255)
+    wastewater: str = Field(default="", max_length=255)
+    existing_certifications: str = Field(default="", max_length=500)
+    people_interviewed: str = Field(default="", max_length=4000)
+    areas_inspected: str = Field(default="", max_length=4000)
+    areas_not_inspected: str = Field(default="", max_length=2000)
+    plan_changes: str = Field(default="", max_length=4000)
+    key_figures: str = Field(default="", max_length=6000)
+    legal_items: str = Field(default="", max_length=8000)
+    prepared_by: str = Field(default="", max_length=255)
+    reviewed_by: str = Field(default="", max_length=255)
+    issued_to: str = Field(default="", max_length=255)
+    next_step: str = Field(default="", max_length=500)
+
+
 INPUT_MODELS = {
     "assess": Assess, "evidence": EvidenceInput, "action.create": NewAction,
     "action.progress": Progress, "action.submit": Implementation, "action.verify": Verify,

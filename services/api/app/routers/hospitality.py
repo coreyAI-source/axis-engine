@@ -13,7 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..database import get_db
 from ..models.hospitality import HospitalityAudit, HospitalityFile
 from ..models.org import User
-from ..schemas.hospitality import AuditCreate, Command, INPUT_MODELS, MemberCreate
+from ..schemas.hospitality import AuditCreate, Command, INPUT_MODELS, MemberCreate, ReadinessProfile
+from ..services import readiness_report as readiness, report_ai
 from ..services.hospitality import actor_for, run_engine
 from ..utils.security import get_current_user, hash_password
 
@@ -217,3 +218,54 @@ async def get_report(audit_id: uuid.UUID, format: str = "json", db: AsyncSession
     if format != "json":
         raise HTTPException(422, "Report format must be json or markdown.")
     return result["value"]["report"]
+
+
+def readiness_view(row):
+    return {
+        "report": readiness.build_readiness(row.bundle, row.report_profile, row.report_draft, row.version),
+        "saved_profile": row.report_profile or {},
+        "ai_configured": report_ai.configured(),
+    }
+
+
+@router.get("/audits/{audit_id}/readiness")
+async def get_readiness(audit_id: uuid.UUID, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    return readiness_view(await get_audit(audit_id, db, user))
+
+
+@router.put("/audits/{audit_id}/readiness/profile")
+async def save_readiness_profile(audit_id: uuid.UUID, payload: ReadinessProfile, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    row = await get_audit(audit_id, db, user)
+    require_role(user, WRITERS)
+    row.report_profile = {k: v for k, v in payload.model_dump().items() if v}
+    await db.flush()
+    return readiness_view(row)
+
+
+@router.post("/audits/{audit_id}/readiness/generate")
+async def generate_readiness(audit_id: uuid.UUID, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    row = await get_audit(audit_id, db, user)
+    require_role(user, WRITERS)
+    profile = readiness.merge_profile(row.bundle, row.report_profile)
+    narrative, model = await report_ai.draft_narrative(readiness.ai_facts(row.bundle, profile))
+    row.report_draft = {"narrative": narrative, "model": model, "generated_at": readiness.now_iso(),
+                        "generated_by": actor_for(user)["name"], "audit_version": row.version}
+    # A regenerated narrative has not been reviewed yet.
+    if row.report_profile and row.report_profile.get("reviewed_by"):
+        row.report_profile = {k: v for k, v in row.report_profile.items() if k != "reviewed_by"}
+    await db.flush()
+    return readiness_view(row)
+
+
+@router.get("/audits/{audit_id}/readiness/export")
+async def export_readiness(audit_id: uuid.UUID, format: str = "docx", db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    row = await get_audit(audit_id, db, user)
+    report = readiness.build_readiness(row.bundle, row.report_profile, row.report_draft, row.version)
+    name = f"AXIS-readiness-review-{readiness.slug(report['hotel'])}"
+    if format == "docx":
+        return Response(readiness.render_docx(report), media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        headers={"Content-Disposition": f'attachment; filename="{name}.docx"', "Cache-Control": "private, no-store"})
+    if format == "markdown":
+        return Response(readiness.render_markdown(report), media_type="text/markdown; charset=utf-8",
+                        headers={"Content-Disposition": f'attachment; filename="{name}.md"', "Cache-Control": "private, no-store"})
+    raise HTTPException(422, "Export format must be docx or markdown.")

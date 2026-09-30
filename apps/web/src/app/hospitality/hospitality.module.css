@@ -158,7 +158,32 @@
   .auditLink { flex-direction:column; align-items:flex-start; }
   .stack { align-items:flex-start; }
 }
+.paper { background:#fbfaf7; color:#1d2230; border-radius:14px; padding:clamp(22px,5vw,56px); box-shadow:0 30px 80px -40px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06); font-size:13.5px; line-height:1.6; max-width:1000px; margin:0 auto 40px; }
+.paper h1 { font-size:26px; letter-spacing:-.02em; margin-bottom:18px; color:#16203a; }
+.paper h2 { font-size:18px; color:#1f3a8a; margin:34px 0 12px; padding-bottom:6px; border-bottom:2px solid #dfe5f3; }
+.paper h3 { font-size:15px; color:#16203a; margin:22px 0 8px; }
+.paper h4 { font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:#4a5575; margin:18px 0 8px; }
+.paper p { margin:0 0 10px; }
+.paper ul, .paper ol { padding-left:22px; margin:0 0 12px; }
+.paper li { margin:4px 0; }
+.paper .pill { color:#222; background:#eef0f5; border-color:#d4d9e6; }
+.paper .pill[data-tone=red] { color:#9b1c1c; background:#fde8e8; border-color:#f5b5b5; }
+.paper .pill[data-tone=amber] { color:#7a4b00; background:#fff3d6; border-color:#f1d08a; }
+.paper .pill[data-tone=blue] { color:#1f3a8a; background:#e7ecfc; border-color:#b8c6f3; }
+.docTableWrap { overflow-x:auto; margin:0 0 14px; }
+.docTable { width:100%; border-collapse:collapse; font-size:12.5px; }
+.docTable th, .docTable td { border:1px solid #d9dde7; padding:7px 9px; text-align:left; vertical-align:top; }
+.docTable thead th { background:#e8edf7; color:#1d2a4d; font-weight:650; }
+.docTable tbody th { background:#f2f3f6; width:30%; font-weight:600; }
+.docDraft { background:#fdecea; color:#8a1f15; border:1px solid #f3b8b0; border-radius:8px; padding:9px 12px; font-weight:600; font-size:12.5px; }
+.docMark { background:#fff1b8; color:#5c4400; padding:1px 4px; border-radius:4px; }
+.docMuted { color:#6b7280; }
+.docChecks { list-style:none; padding-left:4px !important; }
+
 @media print {
+  .paper { box-shadow:none; padding:0; max-width:none; background:#fff; }
+  .paper h2 { break-after:avoid; }
+  .docTable tr { break-inside:avoid; }
   .page { --text:#111; --text-2:#222; --text-3:#444; --muted:#555; --border:#ccc; --border-soft:#ddd; --surface:transparent; --accent:#223a9e; color:#111; }
   .page :global(.sidebar), .noPrint { display:none !important; }
   .page :global(.app-main) { margin:0; }

@@ -52,7 +52,37 @@ export const hospitality = {
   },
   file: (id: string, evidenceId: string) => api.get<Blob>(`/hospitality/audits/${encodeURIComponent(id)}/files/${encodeURIComponent(evidenceId)}`, { responseType: "blob" }),
   report: (id: string) => api.get<Blob>(`/hospitality/audits/${encodeURIComponent(id)}/report`, { params: { format: "markdown" }, responseType: "blob" }),
+  readiness: (id: string) => api.get<ReadinessView>(`/hospitality/audits/${encodeURIComponent(id)}/readiness`),
+  saveReadinessProfile: (id: string, profile: Record<string, string>) => api.put<ReadinessView>(`/hospitality/audits/${encodeURIComponent(id)}/readiness/profile`, profile),
+  generateReadiness: (id: string) => api.post<ReadinessView>(`/hospitality/audits/${encodeURIComponent(id)}/readiness/generate`, {}, { timeout: 200000 }),
+  exportReadiness: (id: string, format: "docx" | "markdown") => api.get<Blob>(`/hospitality/audits/${encodeURIComponent(id)}/readiness/export`, { params: { format }, responseType: "blob" }),
 };
+
+type Pair = [string, string];
+export interface GapRow { code: string; title: string; status: string; priority: string; evidence_seen: string; gap: string }
+export interface PlanAction { number: number; criteria: string[]; action: string; owner: string; evidence: string }
+export interface EvidenceRow { id: string; kind: string; description: string; reference: string; criteria: string; date: string }
+export interface ReadinessReport {
+  draft: boolean; title: string; hotel: string;
+  ai: { model: string; generated_at: string; generated_by: string; stale: boolean } | null;
+  profile: Record<string, string>;
+  cover: Pair[];
+  letter: { salutation: string; paragraphs: string[]; signoff: string[] };
+  notice: string[];
+  summary: { statement: string; readiness_statement: string; limitations: string; strengths: { text: string; evidence: string }[]; top_gaps: { criterion: string; text: string }[]; totals: Record<string, number>;
+    pillars: { code: string; name: string; level: string; headline: string; counts: Record<string, number> }[] };
+  scope: { certification_works: string; table: Pair[]; people: string[][]; areas_inspected: string[]; areas_not_inspected: string[]; status_meanings: Pair[]; priority_meanings: Pair[]; method_notes: string[]; plan_changes: string };
+  hotel_profile: Pair[]; key_figures: string[][];
+  gaps: { code: string; name: string; in_place: string; missing: string; rows: GapRow[] }[];
+  legal: string[][];
+  plan: { phase1: PlanAction[]; phase2: PlanAction[]; closure_note: string };
+  assigned_actions: { criterion: string; description: string; owner: string; due: string; status: string }[];
+  route: { steps: string[]; questions: string[]; schemes: string };
+  evidence_register: EvidenceRow[]; observations: EvidenceRow[];
+  coverage: { code: string; title: string; status: string; actions: string }[];
+  signoff: Pair[]; review_notes: string[]; disclaimer: string;
+}
+export interface ReadinessView { report: ReadinessReport; saved_profile: Record<string, string>; ai_configured: boolean }
 
 export function apiError(error: unknown): string {
   if (!axios.isAxiosError(error)) return error instanceof Error ? error.message : "Something went wrong. Please try again.";

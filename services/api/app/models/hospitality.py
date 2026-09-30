@@ -20,6 +20,9 @@ class HospitalityAudit(Base):
     status: Mapped[str] = mapped_column(String(30), nullable=False)
     version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     bundle: Mapped[dict] = mapped_column(JSON, nullable=False)
+    # Kept outside the engine bundle so editing report details never bumps the audit version.
+    report_profile: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    report_draft: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 

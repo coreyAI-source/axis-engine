@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     minor_nc_due_days: int = 30
     observation_due_days: int = 60
 
+    # AI report drafting (optional; reports work without it)
+    openrouter_api_key: str = ""
+    openrouter_model: str = "anthropic/claude-sonnet-4.5"
+    openrouter_referer: str = "http://localhost:3000"
+
     # Lag monitoring thresholds (days without activity)
     lag_at_risk_days: int = 7
     lag_at_risk_threshold_pct: float = 0.5  # 50% of window elapsed
