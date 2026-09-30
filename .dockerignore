@@ -1,0 +1,12 @@
+**/node_modules
+**/.venv
+**/.next
+**/__pycache__
+**/.pytest_cache
+**/.env
+**/.env.local
+**/.env.*.local
+**/*.log
+ISO auditor
+.git
+.claude

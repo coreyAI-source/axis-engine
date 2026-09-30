@@ -1,0 +1,19 @@
+{
+  "name": "@axis/engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AXIS shared audit engine: pure business rules, no I/O",
+  "main": "src/index.ts",
+  "exports": "./src/index.ts",
+  "engines": { "node": ">=22.6.0" },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --no-warnings --test tests/*.test.ts",
+    "demo": "node --experimental-strip-types --no-warnings --test tests/demo.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.8.3"
+  }
+}

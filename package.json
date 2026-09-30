@@ -1,0 +1,14 @@
+{
+  "name": "axis-engine-project",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AXIS apps, Python API and shared audit rules engine",
+  "engines": { "node": ">=22.6.0" },
+  "scripts": {
+    "test": "npm --prefix packages/engine test",
+    "typecheck": "npm --prefix packages/engine run typecheck",
+    "demo": "npm --prefix packages/engine run demo",
+    "setup:engine": "npm --prefix packages/engine ci",
+    "dev:web": "npm --prefix apps/web run dev"
+  }
+}

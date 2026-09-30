@@ -1,0 +1,21 @@
+# Build from the axis-engine directory:
+# docker build -f infra/Dockerfile.api -t axis-api .
+FROM node:22-bookworm-slim AS node
+FROM python:3.13-slim-bookworm
+
+RUN apt-get update && apt-get install -y --no-install-recommends libstdc++6 ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+WORKDIR /app/services/api
+COPY services/api/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+RUN useradd --create-home --uid 10001 axis
+COPY --chown=axis:axis services/api/app ./app
+COPY --chown=axis:axis services/api/alembic ./alembic
+COPY --chown=axis:axis services/api/alembic.ini ./alembic.ini
+COPY --chown=axis:axis services/api/seed ./seed
+COPY --chown=axis:axis packages/engine/src /app/packages/engine/src
+COPY --chown=axis:axis packages/engine/package.json /app/packages/engine/package.json
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 AUTO_CREATE_TABLES=false
+USER axis
+EXPOSE 8000
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
