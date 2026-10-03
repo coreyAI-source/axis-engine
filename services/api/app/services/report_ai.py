@@ -1,21 +1,20 @@
 """Drafts readiness-report narrative through OpenRouter. Output is validated by readiness_report.clean_narrative."""
 import json
 import logging
-import re
+from pathlib import Path
 
-import httpx
 from fastapi import HTTPException
 
-from ..config import settings
+from . import openrouter
 
 logger = logging.getLogger(__name__)
-URL = "https://openrouter.ai/api/v1/chat/completions"
 
 SYSTEM = """You draft the narrative sections of an AXIS Sustainability Readiness Review: a one-day, sample-based review of what a hotel must address to achieve GSTC certification. A qualified reviewer edits and approves your draft before it is issued.
 
 Rules (all mandatory):
 - Use ONLY the facts supplied. Never invent evidence, figures, percentages, dates, names, laws, permits, regulations or events. If something is unknown, say it was not established.
 - Refer to evidence by the IDs supplied (e.g. D01, I02, O03). Evidence of type Interview is staff-reported, not verified.
+- When a criterion has an "indicator_notes" list, treat each entry as the auditor's record for that indicator. The "evidence_seen" entry must summarise what those indicator notes show by indicator number, naming the evidence IDs linked to each indicator. Do not restate the notes verbatim.
 - Keep each criterion's status and priority exactly as supplied. Do not assign scores, percentages or a pass/fail.
 - Write each gap as a concrete deliverable that must exist on the day of a certification audit ("A written policy that…", "Monthly records of…"), not advice ("consider improving…").
 - Never call gaps "nonconformities". Never state or imply the hotel is, or will be, certified. AXIS does not certify hotels.
@@ -34,51 +33,32 @@ Return one JSON object with exactly these keys:
   "criteria": {"<code>": {"evidence_seen": "under 25 words, starting with the evidence IDs", "gap": "the deliverable(s) that must exist on audit day"}},
   "actions": [{"criteria": ["A1"], "action": "imperative action", "owner": "hotel role", "evidence": "what the certification auditor will want to see"}]
 }
-Include a "criteria" entry for every criterion whose status is Partly met, Not met or Not evidenced, or whose priority is Improvement. Every such criterion must appear in at least one action; related criteria may share an action. Give 2-5 strengths and up to 5 top gaps, Critical first. Omit a pillar key if it has no criteria."""
+Include a "criteria" entry for every criterion whose status is Partly met, Not met or Not evidenced, or whose priority is Improvement. Every such criterion must appear in at least one action; related criteria may share an action. Give 2-5 strengths and up to 5 top gaps, Critical first. Omit a pillar key if it has no criteria.
+
+""" + (Path(__file__).with_name("report_style_examples.txt")).read_text(encoding="utf-8")
+
+
+def _copied_example(narrative):
+    return "rumah padi" in json.dumps(narrative, ensure_ascii=False).lower()
 
 
 def configured():
-    return bool(settings.openrouter_api_key.strip())
-
-
-def _parse(content):
-    text = re.sub(r"^```(?:json)?|```$", "", (content or "").strip(), flags=re.MULTILINE).strip()
-    start, end = text.find("{"), text.rfind("}")
-    if start < 0 or end <= start:
-        raise ValueError("No JSON object in response")
-    return json.loads(text[start:end + 1])
+    return openrouter.configured()
 
 
 async def draft_narrative(facts):
-    if not configured():
-        raise HTTPException(503, "AI drafting is not configured. Add OPENROUTER_API_KEY to services/api/.env and restart the API.")
-    body = {
-        "model": settings.openrouter_model,
-        "temperature": 0.2,
-        "max_tokens": 12000,
-        "response_format": {"type": "json_object"},
-        "messages": [
-            {"role": "system", "content": SYSTEM},
-            {"role": "user", "content": "Audit facts (JSON):\n" + json.dumps(facts, ensure_ascii=False)},
-        ],
-    }
-    headers = {"Authorization": f"Bearer {settings.openrouter_api_key.strip()}", "HTTP-Referer": settings.openrouter_referer, "X-Title": "AXIS readiness report"}
+    result = await openrouter.chat(
+        system=SYSTEM,
+        user="Audit facts (JSON):\n" + json.dumps(facts, ensure_ascii=False),
+        task="narrative",
+        max_tokens=12000,
+        timeout=180.0,
+        title="AXIS readiness report",
+    )
     try:
-        async with httpx.AsyncClient(timeout=180) as client:
-            response = await client.post(URL, headers=headers, json=body)
-            if response.status_code == 400:
-                # Some models reject response_format; the prompt already demands JSON.
-                body.pop("response_format")
-                response = await client.post(URL, headers=headers, json=body)
-    except httpx.HTTPError:
-        raise HTTPException(502, "The AI provider could not be reached. Check the internet connection and try again.")
-    if response.status_code != 200:
-        logger.warning("OpenRouter returned %s", response.status_code)
-        detail = {401: "the API key was rejected", 402: "the OpenRouter account has no credit", 429: "the provider is rate-limiting requests"}.get(response.status_code, f"HTTP {response.status_code}")
-        raise HTTPException(502, f"AI drafting failed: {detail}. No report changes were saved.")
-    try:
-        payload = response.json()
-        content = payload["choices"][0]["message"]["content"]
-        return _parse(content), payload.get("model") or settings.openrouter_model
-    except (ValueError, KeyError, IndexError, TypeError):
+        narrative = openrouter.extract_json_object(result.content)
+    except (ValueError, TypeError):
         raise HTTPException(502, "The AI response was not valid report JSON. Try again, or choose a different OPENROUTER_MODEL.")
+    if _copied_example(narrative):
+        raise HTTPException(502, "The AI copied the template's fictional example instead of this audit. Nothing was saved; try again.")
+    return narrative, result.model

@@ -76,12 +76,30 @@ def _clause_key(code):
     return (match.group(1), int(match.group(2))) if match else ("X", 999)
 
 
+HOW_RECEIVED_LABELS = {
+    "on_site": "Seen on site",
+    "before_visit": "Sent before visit",
+    "after_visit": "Sent after visit",
+    "interview": "Interview",
+    "calculation": "Calculation",
+}
+HOW_RECEIVED_DEFAULTS = {
+    "interview": "Interview",
+    "photo": "Seen on site",
+    "observation": "Seen on site",
+    "document": "Seen on site",
+    "record": "Seen on site",
+}
+
+
 def evidence_register(bundle):
     counters, register = {}, {}
     for item in sorted(bundle.get("evidence", []), key=lambda e: e.get("collectedAt", "")):
         prefix = EVIDENCE_PREFIX.get(item.get("kind"), "D")
         counters[prefix] = counters.get(prefix, 0) + 1
-        register[item["id"]] = {**item, "label": f"{prefix}{counters[prefix]:02d}", "prefix": prefix}
+        via = (item.get("collectedVia") or "").strip()
+        how = HOW_RECEIVED_LABELS.get(via) or HOW_RECEIVED_DEFAULTS.get(item.get("kind"), "Seen on site")
+        register[item["id"]] = {**item, "label": f"{prefix}{counters[prefix]:02d}", "prefix": prefix, "how_received": how}
     return register
 
 
@@ -119,6 +137,14 @@ def criterion_rows(bundle, register):
         severity = (a or {}).get("status", "unassessed")
         linked = [register[e] for e in (a or {}).get("evidenceIds", []) if e in register]
         own_findings = [f for f in findings if f.get("requirementId") == requirement_id and f.get("status") != "withdrawn"]
+        indicator_inputs = []
+        for item in (a or {}).get("indicatorInputs", []) or []:
+            indicator_evidence = [register[e]["label"] for e in item.get("evidenceIds", []) if e in register]
+            indicator_inputs.append({
+                "number": int(item.get("index", 0)) + 1,
+                "notes": (item.get("notes") or "").strip(),
+                "evidence": indicator_evidence,
+            })
         result.append({
             "id": requirement_id, "code": code, "pillar": code[0],
             "title": r.get("title") or r.get("text", "")[:120],
@@ -129,6 +155,7 @@ def criterion_rows(bundle, register):
             "status": readiness_status(a, register),
             "priority": priority_for(severity, bool(r.get("critical"))),
             "rationale": (a or {}).get("rationale", ""),
+            "indicator_inputs": indicator_inputs,
             "evidence": [{"label": e["label"], "kind": e["kind"], "description": e.get("description", "")} for e in linked],
             "findings": [f.get("statement", "") for f in own_findings],
             "actions": [x for x in actions if any(x.get("findingId") == f["id"] for f in own_findings) and x.get("status") != "cancelled"],
@@ -198,6 +225,7 @@ def ai_facts(bundle, profile):
             "evidence": [{"id": e["label"], "type": EVIDENCE_LABEL.get(e["kind"], e["kind"]), "description": e["description"]} for e in row["evidence"]],
             "findings": row["findings"],
             "assigned_actions": [x.get("description", "") for x in row["actions"]],
+            **({"indicator_notes": [i for i in row["indicator_inputs"] if i["notes"] or i["evidence"]]} if row["indicator_inputs"] else {}),
             **({"statement": row["statement"], "indicators": row["indicators"]} if row["status"] in NEEDS_WORK or row["priority"] == "Improvement" else {}),
         } for row in criteria],
     }
@@ -340,6 +368,7 @@ def build_readiness(bundle, saved_profile=None, draft=None, audit_version=None):
             "reference": " · ".join(filter(None, [item.get("reference"), (item.get("attachment") or {}).get("fileName")])),
             "criteria": ", ".join(used_by.get(item["label"], [])) or "—",
             "date": (item.get("collectedAt") or "")[:10], "by": (item.get("collectedBy") or {}).get("name", ""),
+            "how_received": item.get("how_received", ""),
         })
 
     contact = ", ".join(filter(None, [profile.get("hotel_contact_name"), profile.get("hotel_contact_role")])) or PLACEHOLDER
@@ -479,8 +508,8 @@ def render_markdown(r):
     L += ["**Month 6: check readiness, then book**", "", "- [ ] AXIS follow-up review against the same criteria", "- [ ] Choose a GSTC-accredited certification body and request a quote (section 8)", "- [ ] Book the certification audit once no Critical gaps remain", ""]
     L += ["## 8. Route to GSTC certification", "", "Once the Critical gaps are closed, the hotel chooses a GSTC-accredited certification body, which audits it and issues the certificate. AXIS cannot certify the hotel and has no commercial link with any certification body.", ""]
     L += [f"{i + 1}. {step}" for i, step in enumerate(r["route"]["steps"])] + ["", "**Questions to ask each certification body**", ""] + [f"- [ ] {q}" for q in r["route"]["questions"]] + ["", r["route"]["schemes"], ""]
-    L += ["## Appendix A: Evidence register", ""] + (_table(["ID", "Evidence", "Criterion", "Type", "Reference", "Date"], [[e["id"], e["description"], e["criteria"], e["kind"], e["reference"], e["date"]] for e in r["evidence_register"]]) if r["evidence_register"] else ["No documents or interviews recorded.", ""])
-    L += ["## Appendix B: Observation and photo log", ""] + (_table(["ID", "What was observed", "Criterion", "Type", "Reference"], [[e["id"], e["description"], e["criteria"], e["kind"], e["reference"]] for e in r["observations"]]) if r["observations"] else ["No observations or photos recorded.", ""])
+    L += ["## Appendix A: Evidence register", ""] + (_table(["ID", "Evidence", "Criterion", "How received", "Date or period"], [[e["id"], " · ".join(filter(None, [e["description"], e["reference"]])), e["criteria"], e["how_received"] or e["kind"], e["date"]] for e in r["evidence_register"]]) if r["evidence_register"] else ["No documents or interviews recorded.", ""])
+    L += ["## Appendix B: Observation and photo log", ""] + (_table(["ID", "What was observed", "Photo", "Criterion"], [[e["id"], " · ".join(filter(None, [e["description"], e["reference"]])), "Yes" if e["prefix"] == "P" else "—", e["criteria"]] for e in r["observations"]]) if r["observations"] else ["No observations or photos recorded.", ""])
     L += ["## Appendix C: Criterion coverage register", ""] + _table(["Code", "Criterion", "Status", "Action (section 7)"], [[c["code"], c["title"], c["status"], c["actions"]] for c in r["coverage"]])
     L += ["## Sign-off", ""] + _table(["", ""], r["signoff"])
     if r["disclaimer"]:
@@ -501,6 +530,28 @@ def render_docx(r):
     normal = doc.styles["Normal"]
     normal.font.name = "Calibri"
     normal.font.size = Pt(10.5)
+    # Colours and sizes match docs/templates/AXIS_Readiness_Review_Template.docx.
+    green = RGBColor(0x1F, 0x4E, 0x3D)
+    for style_name, size in (("Title", 22), ("Heading 1", 15), ("Heading 2", 14), ("Heading 3", 12)):
+        style = doc.styles[style_name]
+        style.font.name = "Calibri"
+        rfonts = style.element.get_or_add_rPr().get_or_add_rFonts()
+        for attr in ("w:asciiTheme", "w:hAnsiTheme"):
+            rfonts.attrib.pop(qn(attr), None)
+        style.font.size = Pt(size)
+        style.font.color.rgb = green
+        style.font.bold = True
+    title_ppr = doc.styles["Title"].element.get_or_add_pPr()
+    for border in title_ppr.findall(qn("w:pBdr")):
+        title_ppr.remove(border)
+
+    def header_cell(cell, text):
+        cell.text = ""
+        run = cell.paragraphs[0].add_run(str(text))
+        run.bold = True
+        run.font.size = Pt(9.5)
+        run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+        shade(cell, "1F4E3D")
 
     def shade(cell, fill):
         props = cell._tc.get_or_add_tcPr()
@@ -514,12 +565,7 @@ def render_docx(r):
         t = doc.add_table(rows=1, cols=len(headers))
         t.style = "Table Grid"
         for i, h in enumerate(headers):
-            cell = t.rows[0].cells[i]
-            cell.text = ""
-            run = cell.paragraphs[0].add_run(str(h))
-            run.bold = True
-            run.font.size = Pt(9.5)
-            shade(cell, "DCE6F0")
+            header_cell(t.rows[0].cells[i], h)
         for row in body:
             cells = t.add_row().cells
             for i, value in enumerate(row):
@@ -532,11 +578,13 @@ def render_docx(r):
     def pairs(body):
         t = doc.add_table(rows=0, cols=2)
         t.style = "Table Grid"
-        for label, value in body:
+        for index, (label, value) in enumerate(body):
             cells = t.add_row().cells
-            cells[0].text = ""
-            cells[0].paragraphs[0].add_run(str(label)).bold = True
-            shade(cells[0], "F2F2F2")
+            if index == 0:
+                header_cell(cells[0], label)
+                header_cell(cells[1], value or "")
+                continue
+            cells[0].text = str(label)
             cells[1].text = str(value or "")
         doc.add_paragraph()
 
@@ -567,8 +615,13 @@ def render_docx(r):
         doc.add_paragraph(line)
 
     doc.add_heading("1. Important notice", 1)
-    for p in r["notice"]:
-        para(p)
+    para(r["notice"][0])
+    para("In particular:")
+    for p in r["notice"][1:]:
+        lead, _, rest = p.partition(". ")
+        item = doc.add_paragraph(style="List Bullet")
+        item.add_run(lead + ". ").bold = True
+        item.add_run(rest)
 
     s = r["summary"]
     doc.add_heading("2. Summary of results", 1)
@@ -665,12 +718,12 @@ def render_docx(r):
 
     doc.add_heading("Appendix A: Evidence register", 1)
     if r["evidence_register"]:
-        table(["ID", "Evidence", "Criterion", "Type", "Reference", "Date"], [[e["id"], e["description"], e["criteria"], e["kind"], e["reference"], e["date"]] for e in r["evidence_register"]])
+        table(["ID", "Evidence", "Criterion", "How received", "Date or period"], [[e["id"], " · ".join(filter(None, [e["description"], e["reference"]])), e["criteria"], e["how_received"] or e["kind"], e["date"]] for e in r["evidence_register"]])
     else:
         para("No documents or interviews recorded.")
     doc.add_heading("Appendix B: Observation and photo log", 1)
     if r["observations"]:
-        table(["ID", "What was observed", "Criterion", "Type", "Reference"], [[e["id"], e["description"], e["criteria"], e["kind"], e["reference"]] for e in r["observations"]])
+        table(["ID", "What was observed", "Photo", "Criterion"], [[e["id"], " · ".join(filter(None, [e["description"], e["reference"]])), "Yes" if e["prefix"] == "P" else "—", e["criteria"]] for e in r["observations"]])
     else:
         para("No observations or photos recorded.")
     doc.add_heading("Appendix C: Criterion coverage register", 1)

@@ -8,7 +8,9 @@ export interface Actor { name: string; userId?: string; authenticated: boolean }
 export interface Source { documentId: string; documentTitle: string; revision: string; section?: string; clause?: string; page?: string }
 export interface Requirement { id: string; version: number; text: string; title?: string; indicators?: string[]; guidance?: string[]; category?: string; auditPrompt?: string; source: Source; reviewStatus: string; reviewNote?: string; critical?: boolean; weight?: number }
 export interface Template { id: string; version: string; title: string; fictional: boolean; disclaimer: string }
-export interface Assessment { id: string; requirementId: string; status: AssessmentStatus; rationale: string; evidenceIds: string[]; assessedAt?: string; assessedBy?: Actor }
+export interface IndicatorInput { index: number; notes: string; evidenceIds: string[]; updatedAt?: string; updatedBy?: Actor }
+export interface AssessmentSuggestion { status: AssessmentStatus; rationale: string; model: string; generatedAt: string; generatedBy: Actor; basedOnVersion: number }
+export interface Assessment { id: string; version: number; requirementId: string; status: AssessmentStatus; rationale: string; evidenceIds: string[]; assessedAt?: string; assessedBy?: Actor; indicatorInputs?: IndicatorInput[]; suggestion?: AssessmentSuggestion }
 export interface Evidence { id: string; kind: string; description: string; reference?: string; collectedAt: string; collectedBy: Actor; attachment?: { fileName: string; sizeBytes: number; contentType: string } }
 export interface Finding { id: string; requirementId: string; severity: string; statement: string; status: string; raisedAt: string; reviewRequired?: { reason: string }; withdrawal?: { rationale: string }; snapshot: { text: string } }
 export interface CorrectiveAction { id: string; findingId: string; description: string; owner: Actor; dueDate: string; status: string; deadlineBasis: { kind: string; days?: number; reason?: string; reference?: string }; updates: { at: string; by: Actor; note: string }[]; implementation?: { note: string; evidenceIds: string[]; submittedBy: Actor }; verifications: { at: string; verifier: Actor; outcome: string; note: string; separation: string }[] }
@@ -41,13 +43,15 @@ export const hospitality = {
   create: (input: { title: string; site_name: string; scope_statement: string }) => api.post<AuditDetail>("/hospitality/audits", input),
   get: (id: string) => api.get<AuditDetail>(`/hospitality/audits/${encodeURIComponent(id)}`),
   command: (id: string, version: number, operation: string, input: object = {}) => api.post<AuditDetail>(`/hospitality/audits/${encodeURIComponent(id)}/commands`, { expected_version: version, operation, input }),
-  upload: (id: string, version: number, file: File, description: string) => {
+  suggestAssessment: (id: string, version: number, requirementId: string, indicatorInputs: { index: number; notes: string; evidenceIds: string[] }[] = []) => api.post<AuditDetail>(`/hospitality/audits/${encodeURIComponent(id)}/assessments/suggest`, { expected_version: version, requirementId, indicatorInputs }, { timeout: 120000 }),
+  upload: (id: string, version: number, file: File, description: string, collectedVia: string = "") => {
     // Windows may label CSV files as Excel data or leave text files untyped.
     const extension = file.name.split(".").pop()?.toLowerCase();
     const types: Record<string, string> = { csv: "text/csv", txt: "text/plain", pdf: "application/pdf", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg" };
     const type = types[extension || ""] || file.type;
     const uploadFile = type === file.type ? file : new File([file], file.name, { type });
     const body = new FormData(); body.append("file", uploadFile); body.append("expected_version", String(version)); body.append("description", description);
+    if (collectedVia) body.append("collected_via", collectedVia);
     return api.post<AuditDetail>(`/hospitality/audits/${encodeURIComponent(id)}/files`, body, { headers: { "Content-Type": undefined } });
   },
   file: (id: string, evidenceId: string) => api.get<Blob>(`/hospitality/audits/${encodeURIComponent(id)}/files/${encodeURIComponent(evidenceId)}`, { responseType: "blob" }),
@@ -56,12 +60,29 @@ export const hospitality = {
   saveReadinessProfile: (id: string, profile: Record<string, string>) => api.put<ReadinessView>(`/hospitality/audits/${encodeURIComponent(id)}/readiness/profile`, profile),
   generateReadiness: (id: string) => api.post<ReadinessView>(`/hospitality/audits/${encodeURIComponent(id)}/readiness/generate`, {}, { timeout: 200000 }),
   exportReadiness: (id: string, format: "docx" | "markdown") => api.get<Blob>(`/hospitality/audits/${encodeURIComponent(id)}/readiness/export`, { params: { format }, responseType: "blob" }),
+  critiqueReadiness: (id: string, includeAi = false) => api.get<CritiqueResult>(`/hospitality/audits/${encodeURIComponent(id)}/readiness/critique`, { params: { include_ai: includeAi }, timeout: 120000 }),
+  draftEvidenceMetadata: (id: string, file: File) => {
+    const body = new FormData(); body.append("file", file);
+    return api.post<EvidenceDraft>(`/hospitality/audits/${encodeURIComponent(id)}/evidence/draft-metadata`, body, { headers: { "Content-Type": undefined }, timeout: 90000 });
+  },
 };
+
+export interface EvidenceDraft {
+  description: string;
+  kind: string;
+  collectedVia: string;
+  criteriaCodes: string[];
+  confidence: "high" | "medium" | "low";
+  scanned: boolean;
+  model: string | null;
+}
 
 type Pair = [string, string];
 export interface GapRow { code: string; title: string; status: string; priority: string; evidence_seen: string; gap: string }
 export interface PlanAction { number: number; criteria: string[]; action: string; owner: string; evidence: string }
-export interface EvidenceRow { id: string; kind: string; description: string; reference: string; criteria: string; date: string }
+export interface EvidenceRow { id: string; prefix: string; kind: string; description: string; reference: string; criteria: string; date: string; how_received: string }
+export interface CritiqueIssue { severity: "blocker" | "warning" | "note"; code: string; section: string; message: string; quote?: string | null }
+export interface CritiqueResult { ready_to_issue: boolean; counts: { blocker: number; warning: number; note: number }; issues: CritiqueIssue[] }
 export interface ReadinessReport {
   draft: boolean; title: string; hotel: string;
   ai: { model: string; generated_at: string; generated_by: string; stale: boolean } | null;

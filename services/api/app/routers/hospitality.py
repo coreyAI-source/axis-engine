@@ -13,8 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..database import get_db
 from ..models.hospitality import HospitalityAudit, HospitalityFile
 from ..models.org import User
-from ..schemas.hospitality import AuditCreate, Command, INPUT_MODELS, MemberCreate, ReadinessProfile
-from ..services import readiness_report as readiness, report_ai
+from ..schemas.hospitality import AuditCreate, Command, INPUT_MODELS, MemberCreate, ReadinessProfile, SuggestRequest
+from ..services import ingest_ai, readiness_report as readiness, report_ai, report_critique, suggest_ai
 from ..services.hospitality import actor_for, run_engine
 from ..utils.security import get_current_user, hash_password
 
@@ -154,6 +154,7 @@ async def command(audit_id: uuid.UUID, payload: Command, db: AsyncSession = Depe
 @router.post("/audits/{audit_id}/files", status_code=201)
 async def upload_file(audit_id: uuid.UUID, file: UploadFile = File(...), expected_version: int = Form(..., ge=1),
                       description: str = Form(..., min_length=1, max_length=4000),
+                      collected_via: str = Form("", max_length=20),
                       db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
     row = await get_audit(audit_id, db, user)
     require_role(user, WRITERS | {"process_owner"})
@@ -181,9 +182,12 @@ async def upload_file(audit_id: uuid.UUID, file: UploadFile = File(...), expecte
     file_id = uuid.uuid4()
     digest = hashlib.sha256(content).hexdigest()
     key = f"hospitality/{audit_id}/{file_id}"
+    valid_via = {"on_site", "before_visit", "after_visit", "interview", "calculation"}
+    via = collected_via.strip() if collected_via.strip() in valid_via else ""
     result = await run_engine("evidence", user, row.bundle, {
         "kind": "photo" if mime.startswith("image/") else "document", "description": description.strip(),
         "attachment": {"key": key, "fileName": name, "contentType": mime, "sizeBytes": len(content), "sha256": digest},
+        **({"collectedVia": via} if via else {}),
     })
     bundle = result["value"]
     evidence = next(e for e in bundle["evidence"] if e.get("attachment", {}).get("key") == key)
@@ -193,6 +197,25 @@ async def upload_file(audit_id: uuid.UUID, file: UploadFile = File(...), expecte
                            content_type=mime, sha256=digest, content=content))
     await db.flush()
     return await detail(row, user, result.get("warnings"))
+
+
+@router.post("/audits/{audit_id}/evidence/draft-metadata")
+async def draft_evidence_metadata(audit_id: uuid.UUID, file: UploadFile = File(...), db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    row = await get_audit(audit_id, db, user)
+    require_role(user, WRITERS | {"process_owner"})
+    content = await file.read(MAX_FILE_BYTES + 1)
+    if not content:
+        raise HTTPException(422, "The file is empty.")
+    if len(content) > MAX_FILE_BYTES:
+        raise HTTPException(413, "Files must be 10 MB or smaller for metadata drafting.")
+    criteria = []
+    for requirement in row.bundle.get("requirements", []):
+        clause = (requirement.get("source") or {}).get("clause") or ""
+        if re.match(r"^[A-D]\d+$", clause):
+            criteria.append({"code": clause, "title": requirement.get("title") or requirement.get("text", "")[:120]})
+    mime = (file.content_type or "").split(";")[0].lower()
+    draft = await ingest_ai.draft_metadata(content, mime, (file.filename or "file")[:255], criteria)
+    return draft
 
 
 @router.get("/audits/{audit_id}/files/{evidence_id}")
@@ -205,6 +228,44 @@ async def download_file(audit_id: uuid.UUID, evidence_id: uuid.UUID, db: AsyncSe
         "Content-Disposition": "attachment; filename*=UTF-8''" + quote(file.file_name, safe=""),
         "X-Content-Type-Options": "nosniff", "Cache-Control": "private, no-store",
     })
+
+
+@router.post("/audits/{audit_id}/assessments/suggest")
+async def suggest_assessment(audit_id: uuid.UUID, payload: SuggestRequest, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    row = await get_audit(audit_id, db, user)
+    require_role(user, WRITERS)
+    check_version(row, payload.expected_version)
+    requirement_id = str(payload.requirementId)
+    requirement = next((r for r in row.bundle["requirements"] if r["id"] == requirement_id), None)
+    if requirement is None or requirement.get("reviewStatus") != "approved":
+        raise HTTPException(404, "Approved requirement not found in this audit.")
+    if requirement_id not in row.bundle["audit"]["requirementIds"]:
+        raise HTTPException(422, "Requirement is not in this audit's scope.")
+    bundle = row.bundle
+    warnings = []
+    if payload.indicatorInputs:
+        step = await run_engine("assessment.indicators", user, bundle, {
+            "requirementId": requirement_id,
+            "indicatorInputs": [item.model_dump(mode="json") for item in payload.indicatorInputs],
+        })
+        bundle = step["value"]
+        warnings.extend(step.get("warnings") or [])
+    assessment = next((a for a in bundle["assessments"] if a["requirementId"] == requirement_id), None)
+    if assessment is None:
+        raise HTTPException(404, "Assessment not found for this requirement.")
+    updated_requirement = next(r for r in bundle["requirements"] if r["id"] == requirement_id)
+    evidence_by_id = {e["id"]: e for e in bundle["evidence"]}
+    facts = suggest_ai.build_facts(updated_requirement, assessment, evidence_by_id)
+    suggestion = await suggest_ai.suggest_assessment(facts)
+    result = await run_engine("assessment.suggestion", user, bundle, {
+        "requirementId": requirement_id,
+        "status": suggestion["status"],
+        "rationale": suggestion["rationale"],
+        "model": suggestion["model"],
+    })
+    warnings.extend(result.get("warnings") or [])
+    await save_bundle(row, payload.expected_version, result["value"], db, user)
+    return await detail(row, user, warnings)
 
 
 @router.get("/audits/{audit_id}/report")
@@ -255,6 +316,13 @@ async def generate_readiness(audit_id: uuid.UUID, db: AsyncSession = Depends(get
         row.report_profile = {k: v for k, v in row.report_profile.items() if k != "reviewed_by"}
     await db.flush()
     return readiness_view(row)
+
+
+@router.get("/audits/{audit_id}/readiness/critique")
+async def critique_readiness(audit_id: uuid.UUID, include_ai: bool = False, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
+    row = await get_audit(audit_id, db, user)
+    report = readiness.build_readiness(row.bundle, row.report_profile, row.report_draft, row.version)
+    return await report_critique.critique(report, include_ai=include_ai and report_ai.configured())
 
 
 @router.get("/audits/{audit_id}/readiness/export")

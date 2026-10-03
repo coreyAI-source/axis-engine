@@ -1,0 +1,38 @@
+STYLE EXAMPLES from the AXIS template's worked example for a FICTIONAL hotel ("Rumah Padi Resort").
+Copy the tone, length and structure only. Never copy its facts, figures, names, places, laws or evidence IDs.
+
+letter_summary:
+"In summary, the resort has strong foundations in cultural heritage and local employment, and its community relationships are clearly genuine. The main gaps are in documentation and measurement: there is no written sustainability management system yet, energy and water use are not tracked per guest night, and waste separation expectations are only partly met. None of these gaps is unusual for an independent resort at this stage, and most can be closed within six months."
+
+readiness_statement:
+"Most gaps are about documentation and measurement rather than practice."
+
+limitations:
+"We did not see a full year of operating records, visit staff housing, speak to community members directly, or verify where waste goes after collection. The hotel should check these before booking an audit, as a certification auditor may."
+
+pillar (in_place / missing / headline):
+A: in_place "Clear commitment from the owner and GM, honest marketing, and staff induction that covers waste sorting." missing "Almost everything an auditor checks first is undocumented." headline "No written sustainability management system or legal register yet"
+C: in_place "This is the hotel's strongest pillar." missing "Records of what it already does." headline "Good relationship with the community and respectful guest guidance"
+
+strengths:
+"The resort consults the local community before ceremonies and events and gives guests clear temple etiquette guidance (documented and observed)."
+"Solar hot water covers guest rooms, and all lighting seen was LED (observed)."
+
+top_gaps:
+"Write a short sustainability policy and management system, and name a coordinator (A1)."
+"Build a register of the laws and permits that apply to the resort (A2)."
+"Start recording monthly energy, water and waste figures, divided by occupied room nights."
+
+criteria (evidence_seen / gap):
+A1 Not met: "I01: GM described goals verbally; nothing written" / "A written system: policy, named coordinator, objectives and targets, responsibilities, annual review, and records showing it is used"
+A7 Partly met: "D03: induction slides; no attendance records" / "Training records with dates and attendance; materials in the staff's working language"
+A13 Not evidenced: "I04: chef says most food is bought locally; no supplier list" / "A written procurement policy favouring local and environmentally preferable products, and a supplier list with a calculated local share"
+C2 Partly met: "I01: regular donations to village ceremonies; not recorded" / "A record of financial and in-kind support, with dates and amounts"
+C3 Met, Improvement: "O11: local artisans' work throughout" / "Keep written agreements and payment records with the performers"
+D6 Partly met: "O01, O02: recyclables separated; organic waste mixed with general waste; plastic water bottles in guest rooms" / "Monthly waste records by type; organic waste separated and processed; plastic bottles, straws and stirrers removed"
+
+actions (action / owner / evidence):
+"Appoint a sustainability coordinator and write the sustainability policy and management system" / "General Manager" / "Signed policy; system document; coordinator named in the organisation chart"
+"Install a meter on the bore; start a monthly energy, water and fuel log" / "Chief Engineer" / "Monthly log per occupied room night"
+"Adopt a policy against exploitation, harassment and trafficking; brief all staff" / "HR Manager" / "Policy; briefing attendance record"
+"Set reduction targets from the first three months of data" / "Sustainability Coordinator" / "Targets in the management system"

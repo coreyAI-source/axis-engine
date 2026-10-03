@@ -1,8 +1,8 @@
 "use client";
 
 import { FormEvent, ReactNode, useEffect, useState } from "react";
-import { Download, FileText, Printer, Sparkles } from "lucide-react";
-import { dateTime, hospitality, ReadinessReport, ReadinessView, saveBlob } from "@/lib/hospitality";
+import { CheckCircle2, Download, FileText, Printer, ShieldCheck, Sparkles } from "lucide-react";
+import { CritiqueResult, dateTime, hospitality, ReadinessReport, ReadinessView, saveBlob } from "@/lib/hospitality";
 import s from "../hospitality.module.css";
 
 type Field = [key: string, label: string, kind?: "text" | "area", hint?: string];
@@ -43,8 +43,9 @@ const PRIORITY_TONE: Record<string, string> = { Critical: "red", Important: "amb
 
 export default function ReadinessPanel({ auditId, version, editable, fail }: { auditId: string; version: number; editable: boolean; fail: (error: unknown) => void }) {
   const [view, setView] = useState<ReadinessView | null>(null);
-  const [busy, setBusy] = useState<"" | "load" | "save" | "generate" | "docx" | "markdown">("load");
+  const [busy, setBusy] = useState<"" | "load" | "save" | "generate" | "docx" | "markdown" | "critique">("load");
   const [message, setMessage] = useState("");
+  const [critique, setCritique] = useState<CritiqueResult | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -62,7 +63,12 @@ export default function ReadinessPanel({ auditId, version, editable, fail }: { a
     const values = Object.fromEntries([...new FormData(event.currentTarget).entries()].map(([k, v]) => [k, String(v).trim()]));
     void run("save", async () => { setView((await hospitality.saveReadinessProfile(auditId, values)).data); setMessage("Report details saved."); });
   };
-  const generate = () => run("generate", async () => { setView((await hospitality.generateReadiness(auditId)).data); setMessage("AI draft generated. Review every section before issuing."); });
+  const generate = () => run("generate", async () => { setView((await hospitality.generateReadiness(auditId)).data); setCritique(null); setMessage("AI draft generated. Review every section before issuing."); });
+  const runCritique = (includeAi: boolean) => run("critique", async () => {
+    const response = await hospitality.critiqueReadiness(auditId, includeAi);
+    setCritique(response.data);
+    setMessage(response.data.ready_to_issue ? "Critique complete — no blockers found." : "Critique complete — review the issues below before issuing.");
+  });
   const exportAs = (format: "docx" | "markdown") => run(format, async () => {
     const response = await hospitality.exportReadiness(auditId, format);
     saveBlob(response.data, `AXIS-readiness-review-${(view?.report.hotel || "hotel").replace(/[^A-Za-z0-9]+/g, "-")}.${format === "docx" ? "docx" : "md"}`);
@@ -78,6 +84,7 @@ export default function ReadinessPanel({ auditId, version, editable, fail }: { a
         <div><h2>Sustainability Readiness Review</h2><p className={s.muted}>What this hotel must address to achieve GSTC certification. Statuses, counts and evidence IDs come straight from your assessments; AI drafts only the wording.</p></div>
         <div className={s.toolbar}>
           {editable && <button className={s.button} disabled={!!busy || !view.ai_configured} onClick={() => void generate()}><Sparkles size={15} />{busy === "generate" ? "Drafting… (up to 2 min)" : r.ai ? "Regenerate AI draft" : "Generate AI draft"}</button>}
+          <button className={s.secondary} disabled={!!busy} onClick={() => void runCritique(view.ai_configured)}><ShieldCheck size={15} />{busy === "critique" ? "Checking…" : "Review for errors"}</button>
           <button className={s.secondary} disabled={!!busy} onClick={() => void exportAs("docx")}><FileText size={15} />{busy === "docx" ? "Preparing…" : "Download Word"}</button>
           <button className={s.secondary} disabled={!!busy} onClick={() => void exportAs("markdown")}><Download size={15} />Markdown</button>
           <button className={s.secondary} onClick={() => window.print()}><Printer size={15} />Print / PDF</button>
@@ -88,6 +95,19 @@ export default function ReadinessPanel({ auditId, version, editable, fail }: { a
       {r.ai && <p className={s.small}>AI draft by {r.ai.generated_by} · {dateTime(r.ai.generated_at)} · model {r.ai.model}</p>}
       {r.ai?.stale && <p className={s.error} style={{ marginTop: 12 }}>The audit has changed since this draft was generated. Regenerate it, or check the wording against the current assessments.</p>}
       {r.review_notes.length > 0 && <><h3 style={{ marginTop: 16 }}>Before issuing</h3><ul className={s.bulletList}>{r.review_notes.map((note) => <li key={note}>{note}</li>)}</ul></>}
+      {critique && <section style={{ marginTop: 16 }}>
+        <h3>Critique</h3>
+        {critique.ready_to_issue && critique.issues.length === 0 && <p className={s.success} style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 8 }}><CheckCircle2 size={16} /> No issues found — the mechanical checks pass. Still read the draft carefully before issue.</p>}
+        {critique.issues.length > 0 && <>
+          <p className={s.small} style={{ marginTop: 6 }}>{critique.counts.blocker} blocker · {critique.counts.warning} warning · {critique.counts.note} note{critique.counts.note === 1 ? "" : "s"}</p>
+          <ul className={s.bulletList} style={{ marginTop: 10 }}>{critique.issues.map((issue, index) => <li key={`${issue.code}-${index}`}>
+            <span className={s.pill} data-tone={issue.severity === "blocker" ? "red" : issue.severity === "warning" ? "amber" : "blue"}>{issue.severity}</span>
+            <span style={{ marginLeft: 10 }}>{issue.message}</span>
+            <span className={s.small} style={{ marginLeft: 8 }}>· {issue.section}</span>
+            {issue.quote && <blockquote className={s.small} style={{ margin: "6px 0 0 20px", fontStyle: "italic" }}>“{issue.quote}”</blockquote>}
+          </li>)}</ul>
+        </>}
+      </section>}
       <details className={s.details}>
         <summary>Report details (cover, interviews, hotel profile, legal items, sign-off)</summary>
         <form onSubmit={save}><fieldset disabled={!editable || !!busy} style={{ border: 0 }}>
@@ -173,9 +193,9 @@ function ReadinessDocument({ r }: { r: ReadinessReport }) {
     <p>{r.route.schemes}</p>
 
     <h2>Appendix A: Evidence register</h2>
-    {r.evidence_register.length ? <Table head={["ID", "Evidence", "Criterion", "Type", "Reference", "Date"]} rows={r.evidence_register.map((e) => [e.id, e.description, e.criteria, e.kind, e.reference, e.date])} /> : <p className={s.docMuted}>No documents or interviews recorded.</p>}
+    {r.evidence_register.length ? <Table head={["ID", "Evidence", "Criterion", "How received", "Date or period"]} rows={r.evidence_register.map((e) => [e.id, [e.description, e.reference].filter(Boolean).join(" · "), e.criteria, e.how_received || e.kind, e.date])} /> : <p className={s.docMuted}>No documents or interviews recorded.</p>}
     <h2>Appendix B: Observation and photo log</h2>
-    {r.observations.length ? <Table head={["ID", "What was observed", "Criterion", "Type", "Reference"]} rows={r.observations.map((e) => [e.id, e.description, e.criteria, e.kind, e.reference])} /> : <p className={s.docMuted}>No observations or photos recorded.</p>}
+    {r.observations.length ? <Table head={["ID", "What was observed", "Photo", "Criterion"]} rows={r.observations.map((e) => [e.id, [e.description, e.reference].filter(Boolean).join(" · "), e.prefix === "P" ? "Yes" : "—", e.criteria])} /> : <p className={s.docMuted}>No observations or photos recorded.</p>}
     <h2>Appendix C: Criterion coverage register</h2>
     <Table head={["Code", "Criterion", "Status", "Action (section 7)"]} rows={r.coverage.map((c) => [c.code, c.title, c.status, c.actions])} />
 

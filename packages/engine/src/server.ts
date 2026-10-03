@@ -10,8 +10,9 @@ import {
   DEFAULT_CONFIG, createAudit, addCriteria, setAuditStatus, newAssessment, assess,
   reconcileFindings, createEvidence, createAction, addProgressUpdate, submitImplementation,
   verifyAction, closeFinding, withdrawFinding, completeAudit, buildReport, renderReportMarkdown,
-  createRequirement, reviewRequirement,
+  createRequirement, reviewRequirement, saveIndicatorInputs, attachSuggestion,
 } from "./index.ts";
+import type { IndicatorInputPatch } from "./assessment.ts";
 import type { AuditBundle, AuditReport } from "./report.ts";
 import type { Actor, AssessmentStatus, AttachmentRef, EngineConfig, EngineContext, EvidenceKind, Result, SourceReference, Violation } from "./types.ts";
 import { createGstcHotelRequirements, GSTC_HOTEL_TEMPLATE, HOTEL_TEMPLATES } from "./gstc-hotel.ts";
@@ -25,9 +26,10 @@ export interface HospitalityBundle extends AuditBundle {
 export interface ReportPayload { report: AuditReport; markdown: string }
 export type ServerValue = HospitalityBundle | ReportPayload;
 
-const OPERATIONS = ["create", "assess", "evidence", "action.create", "action.progress", "action.submit", "action.verify", "finding.close", "finding.withdraw", "status", "complete", "report", "requirement.create", "requirement.review"] as const;
+const OPERATIONS = ["create", "assess", "assessment.indicators", "assessment.suggestion", "evidence", "action.create", "action.progress", "action.submit", "action.verify", "finding.close", "finding.withdraw", "status", "complete", "report", "requirement.create", "requirement.review"] as const;
 const STATUSES: AssessmentStatus[] = ["unassessed", "conforming", "observation", "minor", "major", "not_applicable"];
 const EVIDENCE_KINDS: EvidenceKind[] = ["document", "photo", "record", "interview", "observation"];
+const COLLECTED_VIA: readonly ("on_site" | "before_visit" | "after_visit" | "interview" | "calculation")[] = ["on_site", "before_visit", "after_visit", "interview", "calculation"];
 const TEMPLATE_NOTICE: Violation = { code: "STANDARD_TEMPLATE", message: `Added ${GSTC_HOTEL_TEMPLATE.title} ${GSTC_HOTEL_TEMPLATE.version} criteria. Mark criteria that do not apply to this property as Not applicable with a reason.` };
 
 class InputError extends Error {
@@ -160,7 +162,7 @@ export function handleRequest(raw: unknown): Result<ServerValue> {
     }
 
     const b = saved!;
-    if (b.audit.status === "complete" && ["assess", "requirement.create", "requirement.review"].includes(operation))
+    if (b.audit.status === "complete" && ["assess", "assessment.indicators", "assessment.suggestion", "requirement.create", "requirement.review"].includes(operation))
       throw new InputError("AUDIT_COMPLETE", "This audit is complete; its assessments and criteria are locked.");
 
     switch (operation) {
@@ -177,8 +179,37 @@ export function handleRequest(raw: unknown): Result<ServerValue> {
         }
         break;
       }
+      case "assessment.indicators": {
+        const requirement = find(b.requirements, input.requirementId, "requirementId");
+        const previous = b.assessments.find((item) => item.requirementId === requirement.id);
+        if (!previous) throw new InputError("NOT_IN_SCOPE", "Approve this requirement before recording indicator notes.", "requirementId");
+        if (!Array.isArray(input.indicatorInputs)) throw new InputError("INVALID_INPUT", "indicatorInputs must be a list.", "indicatorInputs");
+        const patches: IndicatorInputPatch[] = input.indicatorInputs.map((raw, position) => {
+          const item = object(raw, `indicatorInputs[${position}]`);
+          if (!Number.isInteger(item.index)) throw new InputError("INVALID_INPUT", `indicatorInputs[${position}].index must be an integer.`, `indicatorInputs[${position}].index`);
+          return { index: item.index as number, notes: string(item.notes, `indicatorInputs[${position}].notes`, true), evidenceIds: ids(item.evidenceIds ?? []) };
+        });
+        const next = use(saveIndicatorInputs(previous, b.audit, requirement, b.evidence, patches, previous.version, ctx));
+        b.assessments = b.assessments.map((item) => item.id === next.id ? next : item);
+        break;
+      }
+      case "assessment.suggestion": {
+        const requirement = find(b.requirements, input.requirementId, "requirementId");
+        const previous = b.assessments.find((item) => item.requirementId === requirement.id);
+        if (!previous) throw new InputError("NOT_IN_SCOPE", "Approve this requirement before attaching a suggestion.", "requirementId");
+        const next = use(attachSuggestion(previous, b.audit, {
+          status: choice(input.status, STATUSES, "status"),
+          rationale: string(input.rationale, "rationale"),
+          model: string(input.model, "model"),
+        }, previous.version, ctx));
+        b.assessments = b.assessments.map((item) => item.id === next.id ? next : item);
+        break;
+      }
       case "evidence": {
-        b.evidence.push(use(createEvidence({ auditId: b.audit.id, kind: choice(input.kind, EVIDENCE_KINDS, "kind"), description: string(input.description, "description"), reference: string(input.reference, "reference", true) || undefined, attachment: attachment(input.attachment) }, ctx)));
+        const via = input.collectedVia === undefined || input.collectedVia === null || input.collectedVia === ""
+          ? undefined
+          : choice(input.collectedVia, COLLECTED_VIA, "collectedVia");
+        b.evidence.push(use(createEvidence({ auditId: b.audit.id, kind: choice(input.kind, EVIDENCE_KINDS, "kind"), description: string(input.description, "description"), reference: string(input.reference, "reference", true) || undefined, attachment: attachment(input.attachment), collectedVia: via }, ctx)));
         break;
       }
       case "action.create": {

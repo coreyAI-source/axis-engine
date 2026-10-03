@@ -1,7 +1,7 @@
 """Readiness review report: deterministic facts, validated AI narrative, exports and permissions."""
 import pytest
 
-from app.services import report_ai
+from app.services import openrouter, report_ai
 from tests.test_hospitality import command, create_audit, password_hash, people  # noqa: F401  (fixtures)
 
 
@@ -70,7 +70,7 @@ async def test_profile_and_generation_permissions(client, people, monkeypatch):
     assert report["scope"]["people"] == [["General Manager", "Fictional GM", "Management system"], ["Chief Engineer", "", ""]]
     assert report["draft"] is False
 
-    monkeypatch.setattr(report_ai.settings, "openrouter_api_key", "")
+    monkeypatch.setattr(openrouter.settings, "openrouter_api_key", "")
     missing = await client.post(f"{base}/generate", headers=people["admin"]["headers"])
     assert missing.status_code == 503 and "OPENROUTER_API_KEY" in missing.text
 
@@ -120,8 +120,19 @@ async def test_ai_narrative_is_validated_and_drives_the_action_plan(client, peop
 
     docx = await client.get(f"{base}/export?format=docx", headers=people["viewer"]["headers"])
     assert docx.status_code == 200 and docx.content[:2] == b"PK"
+    import io
+    from docx import Document
+    word = Document(io.BytesIO(docx.content))
+    assert 'w:fill="1F4E3D"' in word.tables[0].rows[0].cells[0]._tc.xml  # template's green header row
+    assert word.styles["Heading 1"].font.color.rgb == (0x1F, 0x4E, 0x3D)
     markdown = await client.get(f"{base}/export?format=markdown", headers=people["admin"]["headers"])
     assert markdown.status_code == 200
     for heading in ("## 2. Summary of results", "## 7. Certification action plan", "## Appendix C: Criterion coverage register", "DRAFT"):
         assert heading in markdown.text
     assert (await client.get(f"{base}/export?format=pdf", headers=people["admin"]["headers"])).status_code == 422
+
+
+def test_prompt_carries_template_examples_and_rejects_copies():
+    assert "STYLE EXAMPLES" in report_ai.SYSTEM and "Never copy its facts" in report_ai.SYSTEM
+    assert report_ai._copied_example({"letter_summary": "Rumah Padi has strong foundations"})
+    assert not report_ai._copied_example({"letter_summary": "Bali Hotel has strong foundations"})

@@ -27,7 +27,7 @@ class AuditCreate(StrictInput):
 
 class Command(StrictInput):
     expected_version: int = Field(ge=1)
-    operation: Literal["assess", "evidence", "action.create", "action.progress", "action.submit", "action.verify", "finding.close", "finding.withdraw", "status", "complete", "requirement.create", "requirement.review"]
+    operation: Literal["assess", "assessment.indicators", "assessment.suggestion", "evidence", "action.create", "action.progress", "action.submit", "action.verify", "finding.close", "finding.withdraw", "status", "complete", "requirement.create", "requirement.review"]
     input: dict = Field(default_factory=dict)
 
 
@@ -38,10 +38,38 @@ class Assess(StrictInput):
     evidenceIds: list[UUID] = Field(default_factory=list, max_length=100)
 
 
+class IndicatorInputItem(StrictInput):
+    index: int = Field(ge=0, le=999)
+    notes: str = Field(default="", max_length=10000)
+    evidenceIds: list[UUID] = Field(default_factory=list, max_length=100)
+
+
+class IndicatorInputs(StrictInput):
+    requirementId: UUID
+    indicatorInputs: list[IndicatorInputItem] = Field(default_factory=list, max_length=200)
+
+
+class AttachSuggestion(StrictInput):
+    requirementId: UUID
+    status: Literal["unassessed", "conforming", "observation", "minor", "major", "not_applicable"]
+    rationale: str = Field(min_length=1, max_length=12000)
+    model: str = Field(min_length=1, max_length=200)
+
+
+class SuggestRequest(StrictInput):
+    expected_version: int = Field(ge=1)
+    requirementId: UUID
+    indicatorInputs: list[IndicatorInputItem] = Field(default_factory=list, max_length=200)
+
+
+CollectedVia = Literal["on_site", "before_visit", "after_visit", "interview", "calculation"]
+
+
 class EvidenceInput(StrictInput):
     kind: Literal["document", "photo", "record", "interview", "observation"]
     description: str = Field(min_length=1, max_length=4000)
     reference: str | None = Field(default=None, max_length=1000)
+    collectedVia: CollectedVia | None = None
 
 
 class NewAction(StrictInput):
@@ -139,7 +167,8 @@ class ReadinessProfile(StrictInput):
 
 
 INPUT_MODELS = {
-    "assess": Assess, "evidence": EvidenceInput, "action.create": NewAction,
+    "assess": Assess, "assessment.indicators": IndicatorInputs, "assessment.suggestion": AttachSuggestion,
+    "evidence": EvidenceInput, "action.create": NewAction,
     "action.progress": Progress, "action.submit": Implementation, "action.verify": Verify,
     "finding.close": FindingInput, "finding.withdraw": Withdrawal, "status": StatusInput,
     "complete": StrictInput, "requirement.create": NewRequirement, "requirement.review": Review,

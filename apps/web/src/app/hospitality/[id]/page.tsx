@@ -3,13 +3,14 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 import AppShell from "@/components/AppShell";
-import { apiError, AssessmentStatus, AuditDetail, AuditReport, canAudit, canReview, CorrectiveAction, criterionHeading, criterionStatement, dateTime, Evidence, hospitality, httpStatus, indicatorsWithGuidance, label, Member, Requirement, saveBlob, sourceLabel, statusLabels, statusTone, Template } from "@/lib/hospitality";
+import { apiError, Assessment, AssessmentStatus, AuditDetail, AuditReport, canAudit, canReview, CorrectiveAction, criterionHeading, criterionStatement, dateTime, Evidence, EvidenceDraft, hospitality, httpStatus, indicatorsWithGuidance, label, Member, Requirement, saveBlob, sourceLabel, statusLabels, statusTone, Template } from "@/lib/hospitality";
 import s from "../hospitality.module.css";
 import ReadinessPanel from "./ReadinessReport";
 
 type Command = (operation: string, input?: object) => Promise<boolean>;
+type Suggest = (requirementId: string, indicatorInputs?: { index: number; notes: string; evidenceIds: string[] }[]) => Promise<boolean>;
 type Tab = "overview" | "assessments" | "evidence" | "findings" | "criteria" | "readiness" | "report";
 
 function Pill({ status }: { status: string }) {
@@ -75,16 +76,28 @@ export default function HotelAuditPage() {
     try { const response = await hospitality.command(id, data.version, operation, input); accept(response.data); return true; }
     catch (error) { fail(error); return false; } finally { setBusy(false); }
   };
+  const suggest: Suggest = async (requirementId, indicatorInputs = []) => {
+    if (!data || busy || conflict) return false;
+    setBusy(true); setError(""); setNotice("");
+    try { const response = await hospitality.suggestAssessment(id, data.version, requirementId, indicatorInputs); accept(response.data); return true; }
+    catch (error) { fail(error); return false; } finally { setBusy(false); }
+  };
   async function reload() {
     setBusy(true);
     try { const response = await hospitality.get(id); setData(response.data); setConflict(false); setError(""); setNotice("Latest saved audit loaded. Unsaved form input has been kept; review it before saving."); }
     catch (error) { fail(error); } finally { setBusy(false); }
   }
-  async function upload(file: File, description: string) {
+  async function upload(file: File, description: string, collectedVia: string = "") {
     if (!data || busy || conflict) return false;
     setBusy(true); setError(""); setNotice("");
-    try { const response = await hospitality.upload(id, data.version, file, description); accept(response.data); return true; }
+    try { const response = await hospitality.upload(id, data.version, file, description, collectedVia); accept(response.data); return true; }
     catch (error) { fail(error); return false; } finally { setBusy(false); }
+  }
+  async function draftMetadata(file: File): Promise<EvidenceDraft | null> {
+    if (!data || busy || conflict) return null;
+    setBusy(true); setError(""); setNotice("");
+    try { const response = await hospitality.draftEvidenceMetadata(id, file); return response.data; }
+    catch (error) { fail(error); return null; } finally { setBusy(false); }
   }
   async function download(evidence?: Evidence) {
     try { const response = evidence ? await hospitality.file(id, evidence.id) : await hospitality.report(id); saveBlob(response.data, evidence?.attachment?.fileName || `hotel-audit-${id}.md`); }
@@ -135,8 +148,8 @@ export default function HotelAuditPage() {
         </div>
         <div className={s.card}><h2>Activity record</h2><ul className={s.history} style={{ marginTop: 16 }}>{audit.history?.slice().reverse().map((entry, index) => <li key={`${entry.at}-${index}`}>{dateTime(entry.at)} · {entry.actor.name} · {label(entry.event.replace(/\./g, " "))}</li>)}</ul></div>
       </section>
-      <section id="panel-assessments" role="tabpanel" aria-labelledby="tab-assessments" hidden={tab !== "assessments"} className={s.noPrint}><AssessmentPanel data={data} disabled={locked || !editable || complete} command={command} goEvidence={() => setTab("evidence")} /></section>
-      <section id="panel-evidence" role="tabpanel" aria-labelledby="tab-evidence" hidden={tab !== "evidence"} className={s.noPrint}><EvidencePanel evidence={data.bundle.evidence} editable={editable || me?.role_code === "process_owner"} disabled={locked} command={command} upload={upload} download={download} /></section>
+      <section id="panel-assessments" role="tabpanel" aria-labelledby="tab-assessments" hidden={tab !== "assessments"} className={s.noPrint}><AssessmentPanel data={data} disabled={locked || !editable || complete} command={command} suggest={suggest} goEvidence={() => setTab("evidence")} /></section>
+      <section id="panel-evidence" role="tabpanel" aria-labelledby="tab-evidence" hidden={tab !== "evidence"} className={s.noPrint}><EvidencePanel evidence={data.bundle.evidence} editable={editable || me?.role_code === "process_owner"} disabled={locked} command={command} upload={upload} draftMetadata={draftMetadata} download={download} /></section>
       <section id="panel-findings" role="tabpanel" aria-labelledby="tab-findings" hidden={tab !== "findings"} className={s.noPrint}><FindingsPanel data={data} me={me} members={members} disabled={locked} command={command} /></section>
       <section id="panel-criteria" role="tabpanel" aria-labelledby="tab-criteria" hidden={tab !== "criteria"} className={s.noPrint}><CriteriaPanel data={data} editable={editable && !complete} reviewer={canReview(me) && !complete} disabled={locked} command={command} /></section>
       <section id="panel-readiness" role="tabpanel" aria-labelledby="tab-readiness" hidden={tab !== "readiness"}>{tab === "readiness" && <ReadinessPanel auditId={id} version={data.version} editable={editable} fail={fail} />}</section>
@@ -252,10 +265,67 @@ function ReportPanel({ report, bundle, template, editable, disabled, command, do
 }
 
 interface AssessmentDraft { status: AssessmentStatus; rationale: string; evidenceIds: string[] }
+interface IndicatorDraft { notes: string; evidenceIds: string[] }
+type IndicatorDraftSet = Record<number, IndicatorDraft>;
 type Filter = "all" | "todo" | "findings" | "done";
-function AssessmentPanel({ data, disabled, command, goEvidence }: { data: AuditDetail; disabled: boolean; command: Command; goEvidence: () => void }) {
+
+function savedIndicator(assessment: Assessment | undefined, index: number): IndicatorDraft {
+  const record = assessment?.indicatorInputs?.find((entry) => entry.index === index);
+  return { notes: record?.notes || "", evidenceIds: record?.evidenceIds ? [...record.evidenceIds] : [] };
+}
+function indicatorDraftsChanged(assessment: Assessment | undefined, drafts: IndicatorDraftSet | undefined): boolean {
+  if (!drafts) return false;
+  for (const [key, value] of Object.entries(drafts)) {
+    const saved = savedIndicator(assessment, Number(key));
+    if (saved.notes !== value.notes) return true;
+    if (saved.evidenceIds.length !== value.evidenceIds.length) return true;
+    if (saved.evidenceIds.some((id, index) => id !== value.evidenceIds[index])) return true;
+  }
+  return false;
+}
+function collectIndicatorPatches(assessment: Assessment | undefined, drafts: IndicatorDraftSet | undefined, indicatorCount: number) {
+  const patches: { index: number; notes: string; evidenceIds: string[] }[] = [];
+  const seen = new Set<number>();
+  if (drafts) {
+    for (const [key, value] of Object.entries(drafts)) {
+      const index = Number(key);
+      if (!Number.isInteger(index) || index < 0 || index >= indicatorCount) continue;
+      seen.add(index);
+      patches.push({ index, notes: value.notes.trim(), evidenceIds: [...value.evidenceIds] });
+    }
+  }
+  for (const entry of assessment?.indicatorInputs || []) {
+    if (!seen.has(entry.index)) patches.push({ index: entry.index, notes: entry.notes, evidenceIds: [...(entry.evidenceIds || [])] });
+  }
+  return patches;
+}
+
+function IndicatorNoteField({ requirementId, index, text, guidance, draft, evidence, disabled, onChange }: {
+  requirementId: string;
+  index: number;
+  text: string;
+  guidance?: string;
+  draft: IndicatorDraft;
+  evidence: Evidence[];
+  disabled: boolean;
+  onChange: (patch: Partial<IndicatorDraft>) => void;
+}) {
+  return <li className={s.indicator}>
+    <div style={{ fontSize: 13, lineHeight: 1.6, color: "var(--text-2)" }}>{text}</div>
+    {guidance && <details className={s.guide}><summary>GSTC guideline</summary><p>{guidance}</p></details>}
+    <fieldset disabled={disabled} style={{ border: 0, padding: 0, margin: "10px 0 0" }}>
+      <label className={s.field} style={{ marginBottom: 10 }}>Auditor notes for this indicator
+        <textarea rows={3} value={draft.notes} maxLength={10000} onChange={(event) => onChange({ notes: event.target.value })} placeholder="What you saw, who you spoke to, which record you sampled. Leave blank if not established." />
+      </label>
+      <EvidencePicker id={`ind-${requirementId}-${index}`} evidence={evidence} selected={draft.evidenceIds} change={(evidenceIds) => onChange({ evidenceIds })} />
+    </fieldset>
+  </li>;
+}
+
+function AssessmentPanel({ data, disabled, command, suggest, goEvidence }: { data: AuditDetail; disabled: boolean; command: Command; suggest: Suggest; goEvidence: () => void }) {
   const [selected, setSelected] = useState("");
   const [drafts, setDrafts] = useState<Record<string, AssessmentDraft>>({});
+  const [indicatorDrafts, setIndicatorDrafts] = useState<Record<string, IndicatorDraftSet>>({});
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const requirements = useMemo(() => data.bundle.requirements.filter((r) => data.bundle.audit.requirementIds.includes(r.id)), [data]);
@@ -271,9 +341,48 @@ function AssessmentPanel({ data, disabled, command, goEvidence }: { data: AuditD
   const requirement = requirements.find((r) => r.id === selected) || visible[0] || requirements[0];
   const assessment = data.bundle.assessments.find((a) => a.requirementId === requirement?.id);
   const draft = requirement ? drafts[requirement.id] || { status: assessment?.status || "unassessed", rationale: assessment?.rationale || "", evidenceIds: assessment?.evidenceIds || [] } : null;
-  const dirty = Object.keys(drafts).length > 0;
+  const indicatorSet = requirement ? indicatorDrafts[requirement.id] : undefined;
+  const indicatorsDirty = indicatorDraftsChanged(assessment, indicatorSet);
+  const dirty = Object.keys(drafts).length > 0 || Object.keys(indicatorDrafts).some((key) => indicatorDraftsChanged(data.bundle.assessments.find((a) => a.requirementId === key), indicatorDrafts[key]));
   useEffect(() => { const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); }; if (dirty) window.addEventListener("beforeunload", warn); return () => window.removeEventListener("beforeunload", warn); }, [dirty]);
   function change(patch: Partial<AssessmentDraft>) { if (requirement && draft) setDrafts((previous) => ({ ...previous, [requirement.id]: { ...draft, ...patch } })); }
+  function changeIndicator(index: number, patch: Partial<IndicatorDraft>) {
+    if (!requirement) return;
+    setIndicatorDrafts((previous) => {
+      const existing = previous[requirement.id] || {};
+      const current = existing[index] || savedIndicator(assessment, index);
+      return { ...previous, [requirement.id]: { ...existing, [index]: { ...current, ...patch } } };
+    });
+  }
+  function clearIndicatorDrafts(requirementId: string) {
+    setIndicatorDrafts((previous) => { const next = { ...previous }; delete next[requirementId]; return next; });
+  }
+  const indicators = requirement ? (requirement.indicators || []) : [];
+  const guidanceByIndex = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const entry of requirement?.guidance || []) {
+      const match = /^(\d+)\.\s+([\s\S]*)$/.exec(entry);
+      if (match) map.set(Number(match[1]) - 1, match[2]);
+    }
+    return map;
+  }, [requirement]);
+  const additionalGuidance = useMemo(() => (requirement?.guidance || []).filter((entry) => !/^\d+\.\s+/.test(entry)), [requirement]);
+  async function saveIndicators() {
+    if (!requirement) return;
+    const patches = collectIndicatorPatches(assessment, indicatorSet, indicators.length);
+    const saved = await command("assessment.indicators", { requirementId: requirement.id, indicatorInputs: patches });
+    if (saved) clearIndicatorDrafts(requirement.id);
+  }
+  async function runSuggest() {
+    if (!requirement) return;
+    const patches = collectIndicatorPatches(assessment, indicatorSet, indicators.length);
+    const ok = await suggest(requirement.id, patches);
+    if (ok) clearIndicatorDrafts(requirement.id);
+  }
+  function applySuggestion() {
+    if (!requirement || !assessment?.suggestion) return;
+    setDrafts((previous) => ({ ...previous, [requirement.id]: { status: assessment.suggestion!.status, rationale: assessment.suggestion!.rationale, evidenceIds: draft?.evidenceIds || assessment.evidenceIds || [] } }));
+  }
   async function save(event: FormEvent) {
     event.preventDefault(); if (!requirement || !draft) return;
     const saved = await command("assess", { requirementId: requirement.id, ...draft });
@@ -285,36 +394,97 @@ function AssessmentPanel({ data, disabled, command, goEvidence }: { data: AuditD
   }
   if (!requirement || !draft) return <div className={s.card}><h2>No approved criteria in scope</h2><p className={s.subtitle}>Create and approve requirements in the Criteria tab.</p></div>;
   const position = requirements.indexOf(requirement);
+  const suggestion = assessment?.suggestion;
+  const suggestionFresh = suggestion && assessment && suggestion.basedOnVersion >= assessment.version - 1;
   return <div className={s.split}>
     <div className={s.navPane}>
       <div className={s.navTools}><input className={s.search} type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search A1, water, staff…" aria-label="Search criteria" /><select className={s.search} value={filter} onChange={(event) => setFilter(event.target.value as Filter)} aria-label="Filter criteria"><option value="all">All criteria</option><option value="todo">Not assessed</option><option value="findings">Findings & observations</option><option value="done">Assessed</option></select></div>
-      <div className={s.criteriaNav}>{groupByCategory(visible).map(([category, items]) => <div key={category}><p className={s.groupLabel}><span>{category}</span><span>{items.filter((item) => statusOf(item.id) !== "unassessed").length}/{items.length}</span></p>{items.map((item) => { const status = drafts[item.id]?.status || statusOf(item.id); return <button className={s.criterion} key={item.id} aria-current={item.id === requirement.id} onClick={() => setSelected(item.id)}><span className={s.statusDot} data-tone={statusTone[status]} aria-hidden="true" /><span style={{ minWidth: 0 }}><strong>{criterionHeading(item)}</strong><em>{drafts[item.id] ? "Unsaved changes" : statusLabels[statusOf(item.id)]}{item.critical ? " · Critical" : ""}</em></span></button>; })}</div>)}{visible.length === 0 && <p className={s.small} style={{ padding: 12 }}>No criteria match this search.</p>}</div>
+      <div className={s.criteriaNav}>{groupByCategory(visible).map(([category, items]) => <div key={category}><p className={s.groupLabel}><span>{category}</span><span>{items.filter((item) => statusOf(item.id) !== "unassessed").length}/{items.length}</span></p>{items.map((item) => { const status = drafts[item.id]?.status || statusOf(item.id); const itemDirty = drafts[item.id] || indicatorDraftsChanged(data.bundle.assessments.find((a) => a.requirementId === item.id), indicatorDrafts[item.id]); return <button className={s.criterion} key={item.id} aria-current={item.id === requirement.id} onClick={() => setSelected(item.id)}><span className={s.statusDot} data-tone={statusTone[status]} aria-hidden="true" /><span style={{ minWidth: 0 }}><strong>{criterionHeading(item)}</strong><em>{itemDirty ? "Unsaved changes" : statusLabels[statusOf(item.id)]}{item.critical ? " · Critical" : ""}</em></span></button>; })}</div>)}{visible.length === 0 && <p className={s.small} style={{ padding: 12 }}>No criteria match this search.</p>}</div>
     </div>
     <div className={s.card}>
       <div className={s.cardHead}><div><p className={s.eyebrow}>{requirement.category || "Requirement"} · {position + 1} of {requirements.length}</p><h2 style={{ fontSize: 20 }}>{requirement.source.clause && requirement.title && <span className={s.code} style={{ fontSize: 13, marginRight: 10, verticalAlign: "3px" }}>{requirement.source.clause}</span>}{requirement.title || requirement.text}</h2></div><div className={s.toolbar}>{requirement.critical && <span className={s.pill} data-tone="amber">Critical</span>}<Pill status={assessment?.status || "unassessed"} /></div></div>
-      <CriterionDetail requirement={requirement} />
+      <p className={s.statement}>{criterionStatement(requirement)}</p>
+      <p className={s.small}>{sourceLabel(requirement.source)}</p>
+      {requirement.auditPrompt && <p className={s.prompt}>{requirement.auditPrompt}</p>}
+      {indicators.length > 0 ? <>
+        <p className={s.sectionTitle}>Performance indicators — add notes and link evidence</p>
+        <ol className={s.indicators}>
+          {indicators.map((rawText, index) => {
+            const draftRecord = indicatorSet?.[index];
+            const current: IndicatorDraft = draftRecord || savedIndicator(assessment, index);
+            return <IndicatorNoteField
+              key={index}
+              requirementId={requirement.id}
+              index={index}
+              text={rawText.replace(/\s*\(See Guidelines\)\s*$/, "")}
+              guidance={guidanceByIndex.get(index)}
+              draft={current}
+              evidence={data.bundle.evidence}
+              disabled={disabled}
+              onChange={(patch) => changeIndicator(index, patch)}
+            />;
+          })}
+        </ol>
+        {additionalGuidance.map((note) => <p key={note} className={s.prompt} style={{ whiteSpace: "pre-line" }}>{note}</p>)}
+        <div className={s.toolbar} style={{ marginTop: 14 }}>
+          <button type="button" className={s.secondary} disabled={disabled || !indicatorsDirty} onClick={() => void saveIndicators()}>Save indicator notes</button>
+          <button type="button" className={s.button} disabled={disabled} onClick={() => void runSuggest()}>Suggest outcome & rationale</button>
+          <button type="button" className={s.secondary} onClick={goEvidence}>Add evidence</button>
+          {indicatorsDirty && <span className={s.small}>Unsaved indicator notes will be saved automatically when you request a suggestion.</span>}
+        </div>
+      </> : <p className={s.small} style={{ marginTop: 12 }}>This criterion has no performance indicators. Enter your rationale directly below.</p>}
       <hr className={s.rule} />
-      <form onSubmit={save}><fieldset disabled={disabled} style={{ border: 0 }}><label className={s.field}>Assessment outcome<select value={draft.status} onChange={(event) => change({ status: event.target.value as AssessmentStatus })}><option value="unassessed" disabled>Choose an outcome</option>{(Object.keys(statusLabels) as AssessmentStatus[]).filter((status) => status !== "unassessed").map((status) => <option key={status} value={status}>{statusLabels[status]}</option>)}</select></label><label className={s.field}>Rationale<textarea value={draft.rationale} onChange={(event) => change({ rationale: event.target.value })} required minLength={data.bundle.config?.minRationaleLength || 20} maxLength={10000} placeholder="Which indicators did you verify, what did the evidence show, and which indicators do not apply here (and why)?" /><small>Explain exclusions when choosing Not applicable. Minor and major outcomes create findings.</small></label><EvidencePicker id={`assess-${requirement.id}`} evidence={data.bundle.evidence} selected={draft.evidenceIds} change={(evidenceIds) => change({ evidenceIds })} /><div className={s.toolbar}><button type="submit" className={s.button} disabled={draft.status === "unassessed"}>Save assessment</button><button type="button" className={s.secondary} onClick={goEvidence}>Add evidence</button><span style={{ flex: 1 }} /><button type="button" className={s.secondary} disabled={position <= 0} onClick={() => setSelected(requirements[position - 1]!.id)}>← Previous</button><button type="button" className={s.secondary} disabled={position >= requirements.length - 1} onClick={() => setSelected(requirements[position + 1]!.id)}>Next →</button></div></fieldset></form><p className={s.small} style={{ marginTop: 14 }}>{drafts[requirement.id] ? "Unsaved changes — save this assessment when ready. Your draft is kept while moving between criteria and tabs." : assessment?.assessedAt ? `Saved by ${assessment.assessedBy?.name} on ${dateTime(assessment.assessedAt)}` : "This criterion has not been assessed yet."}</p>
+      {suggestionFresh && suggestion && <div className={s.notice}>
+        <strong>Suggested outcome — review before saving</strong>
+        <p style={{ margin: "4px 0 6px" }}>{statusLabels[suggestion.status]} · Drafted {dateTime(suggestion.generatedAt)} by {suggestion.generatedBy.name} using {suggestion.model}.</p>
+        <p style={{ margin: "4px 0", whiteSpace: "pre-wrap" }}>{suggestion.rationale}</p>
+        <div className={s.toolbar} style={{ marginTop: 8 }}>
+          <button type="button" className={s.button} disabled={disabled} onClick={applySuggestion}>Load into outcome & rationale</button>
+          <span className={s.small}>Loading fills the fields below so you can edit before saving. Nothing is saved until you press Save assessment.</span>
+        </div>
+      </div>}
+      <form onSubmit={save}><fieldset disabled={disabled} style={{ border: 0 }}><label className={s.field}>Assessment outcome<select value={draft.status} onChange={(event) => change({ status: event.target.value as AssessmentStatus })}><option value="unassessed" disabled>Choose an outcome</option>{(Object.keys(statusLabels) as AssessmentStatus[]).filter((status) => status !== "unassessed").map((status) => <option key={status} value={status}>{statusLabels[status]}</option>)}</select></label><label className={s.field}>Rationale<textarea value={draft.rationale} onChange={(event) => change({ rationale: event.target.value })} required minLength={data.bundle.config?.minRationaleLength || 20} maxLength={10000} placeholder="Which indicators did you verify, what did the evidence show, and which indicators do not apply here (and why)?" /><small>Explain exclusions when choosing Not applicable. Minor and major outcomes create findings.</small></label><EvidencePicker id={`assess-${requirement.id}`} evidence={data.bundle.evidence} selected={draft.evidenceIds} change={(evidenceIds) => change({ evidenceIds })} /><div className={s.toolbar}><button type="submit" className={s.button} disabled={draft.status === "unassessed"}>Save assessment</button><span style={{ flex: 1 }} /><button type="button" className={s.secondary} disabled={position <= 0} onClick={() => setSelected(requirements[position - 1]!.id)}>← Previous</button><button type="button" className={s.secondary} disabled={position >= requirements.length - 1} onClick={() => setSelected(requirements[position + 1]!.id)}>Next →</button></div></fieldset></form><p className={s.small} style={{ marginTop: 14 }}>{drafts[requirement.id] ? "Unsaved outcome/rationale — save this assessment when ready. Your draft is kept while moving between criteria and tabs." : assessment?.assessedAt ? `Saved by ${assessment.assessedBy?.name} on ${dateTime(assessment.assessedAt)}` : "This criterion has not been assessed yet."}</p>
     </div>
   </div>;
 }
 
-function EvidencePanel({ evidence, editable, disabled, command, upload, download }: { evidence: Evidence[]; editable: boolean; disabled: boolean; command: Command; upload: (file: File, description: string) => Promise<boolean>; download: (evidence: Evidence) => Promise<void> }) {
+function EvidencePanel({ evidence, editable, disabled, command, upload, draftMetadata, download }: { evidence: Evidence[]; editable: boolean; disabled: boolean; command: Command; upload: (file: File, description: string, collectedVia?: string) => Promise<boolean>; draftMetadata: (file: File) => Promise<EvidenceDraft | null>; download: (evidence: Evidence) => Promise<void> }) {
   const [mode, setMode] = useState("upload");
   const [validation, setValidation] = useState("");
+  const [description, setDescription] = useState("");
+  const [collectedVia, setCollectedVia] = useState("");
+  const [drafting, setDrafting] = useState(false);
+  const [draftInfo, setDraftInfo] = useState<string>("");
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  function resetForm() { setDescription(""); setCollectedVia(""); setDraftInfo(""); setValidation(""); }
+  async function runDraft() {
+    const file = fileRef.current?.files?.[0];
+    if (!file) { setValidation("Choose a file first, then draft with AI."); return; }
+    if (file.size > 10 * 1024 * 1024) { setValidation("The file must be 10 MB or smaller."); return; }
+    setValidation(""); setDrafting(true); setDraftInfo("Reading the file and drafting metadata…");
+    try {
+      const draft = await draftMetadata(file);
+      if (!draft) return;
+      setDescription(draft.description);
+      setCollectedVia(draft.collectedVia || "");
+      const suggestions = draft.criteriaCodes.length ? ` · suggested criteria: ${draft.criteriaCodes.join(", ")}` : "";
+      const scanned = draft.scanned ? " (image/scan — low confidence)" : "";
+      setDraftInfo(`AI draft loaded${suggestions} · confidence ${draft.confidence}${scanned}. Edit anything before saving.`);
+    } finally { setDrafting(false); }
+  }
   async function add(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); const form = event.currentTarget; const values = new FormData(form); setValidation("");
     let saved = false;
     if (mode === "upload") {
-      const file = values.get("file");
-      if (!(file instanceof File) || !file.size) { setValidation("Choose a non-empty file to upload."); return; }
+      const file = fileRef.current?.files?.[0];
+      if (!file || !file.size) { setValidation("Choose a non-empty file to upload."); return; }
       if (file.size > 10 * 1024 * 1024) { setValidation("The file must be 10 MB or smaller."); return; }
-      saved = await upload(file, String(values.get("description")).trim());
-    } else saved = await command("evidence", { kind: String(values.get("kind")), description: String(values.get("description")).trim(), reference: String(values.get("reference")).trim() || undefined });
-    if (saved) form.reset();
+      saved = await upload(file, description.trim(), collectedVia);
+    } else saved = await command("evidence", { kind: String(values.get("kind")), description: description.trim(), reference: String(values.get("reference")).trim() || undefined, ...(collectedVia ? { collectedVia } : {}) });
+    if (saved) { form.reset(); resetForm(); }
   }
   return <><div className={s.cardHead}><div><h2>Evidence register</h2><p className={s.muted}>Record evidence once, then link it to assessments and corrective actions.</p></div><span className={s.pill}>{evidence.length} records</span></div>
-    {editable && <div className={s.card}><div className={s.toolbar} style={{ marginBottom: 20 }}><button className={mode === "upload" ? s.button : s.secondary} onClick={() => setMode("upload")}>Upload file</button><button className={mode === "note" ? s.button : s.secondary} onClick={() => setMode("note")}>Record evidence note</button></div>{validation && <p role="alert" className={s.error}>{validation}</p>}<form onSubmit={add}><fieldset disabled={disabled} style={{ border: 0 }}>{mode === "upload" ? <label className={s.field}>Evidence file<input name="file" type="file" required accept=".pdf,.png,.jpg,.jpeg,.txt,.csv" /><small>PDF, PNG, JPEG, TXT or CSV · maximum 10 MB. Files are private to your organisation.</small></label> : <div className={s.grid}><label className={s.field}>Evidence type<select name="kind"><option value="observation">Observation</option><option value="interview">Interview</option><option value="record">Record reference</option><option value="document">Document reference</option><option value="photo">Photo reference</option></select></label><label className={s.field}>Reference (optional)<input name="reference" maxLength={1000} placeholder="e.g. Water meter log, September, page 2" /></label></div>}<label className={s.field}>Description<textarea name="description" required minLength={10} maxLength={4000} placeholder="Describe what this shows, where it came from and when it was collected." /></label><button className={s.button} type="submit">{mode === "upload" ? "Upload and save evidence" : "Save evidence note"}</button></fieldset></form></div>}
+    {editable && <div className={s.card}><div className={s.toolbar} style={{ marginBottom: 20 }}><button className={mode === "upload" ? s.button : s.secondary} onClick={() => { setMode("upload"); resetForm(); }}>Upload file</button><button className={mode === "note" ? s.button : s.secondary} onClick={() => { setMode("note"); resetForm(); }}>Record evidence note</button></div>{validation && <p role="alert" className={s.error}>{validation}</p>}<form onSubmit={add}><fieldset disabled={disabled || drafting} style={{ border: 0 }}>{mode === "upload" ? <><label className={s.field}>Evidence file<input ref={fileRef} name="file" type="file" required accept=".pdf,.png,.jpg,.jpeg,.txt,.csv" onChange={() => setDraftInfo("")} /><small>PDF, PNG, JPEG, TXT or CSV · maximum 10 MB. Files are private to your organisation.</small></label><div className={s.toolbar} style={{ marginBottom: 14 }}><button type="button" className={s.secondary} disabled={drafting} onClick={() => void runDraft()}><Sparkles size={14} />{drafting ? "Drafting…" : "Draft description with AI"}</button>{draftInfo && <span className={s.small}>{draftInfo}</span>}</div></> : <div className={s.grid}><label className={s.field}>Evidence type<select name="kind"><option value="observation">Observation</option><option value="interview">Interview</option><option value="record">Record reference</option><option value="document">Document reference</option><option value="photo">Photo reference</option></select></label><label className={s.field}>Reference (optional)<input name="reference" maxLength={1000} placeholder="e.g. Water meter log, September, page 2" /></label></div>}<label className={s.field}>Description<textarea name="description" required minLength={10} maxLength={4000} placeholder="Describe what this shows, where it came from and when it was collected." value={description} onChange={(event) => setDescription(event.target.value)} /></label><label className={s.field}>How received (for the report "How received" column)<select name="collectedVia" value={collectedVia} onChange={(event) => setCollectedVia(event.target.value)}><option value="">Use evidence-type default</option><option value="on_site">Seen on site</option><option value="before_visit">Sent before visit</option><option value="after_visit">Sent after visit</option><option value="interview">Interview</option><option value="calculation">Calculation</option></select></label><button className={s.button} type="submit">{mode === "upload" ? "Upload and save evidence" : "Save evidence note"}</button></fieldset></form></div>}
     {evidence.length ? <div className={s.list}>{evidence.slice().reverse().map((item) => <article key={item.id} className={s.card} style={{ marginBottom: 0 }}><div className={s.cardHead}><div><span className={s.pill} data-tone="blue">{label(item.kind)}</span><h3 style={{ marginTop: 10, whiteSpace: "pre-wrap" }}>{item.description}</h3></div>{item.attachment && <button className={s.secondary} onClick={() => void download(item)}>Download file</button>}</div>{item.reference && <p className={s.muted}>Reference: {item.reference}</p>}{item.attachment && <p className={s.small}>{item.attachment.fileName} · {(item.attachment.sizeBytes / 1024).toFixed(1)} KB</p>}<p className={s.small} style={{ marginTop: 10 }}>Collected by {item.collectedBy.name} · {dateTime(item.collectedAt)}</p></article>)}</div> : <div className={`${s.card} ${s.empty}`}><h2>No evidence recorded yet</h2><p>Start with an observation, an interview or a supporting file.</p></div>}
   </>;
 }

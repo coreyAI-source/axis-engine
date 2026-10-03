@@ -1,4 +1,4 @@
-import type { AttachmentRef, EngineContext, Evidence, EvidenceKind, Result, Violation } from "./types.ts";
+import type { AttachmentRef, CollectedVia, EngineContext, Evidence, EvidenceKind, Result, Violation } from "./types.ts";
 import { blank, fail, ok, v } from "./util.ts";
 
 export const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024; // internal limit; adjust to R2/Worker limits in use
@@ -9,6 +9,7 @@ export interface NewEvidence {
   description: string;
   reference?: string;
   attachment?: AttachmentRef;
+  collectedVia?: CollectedVia;
 }
 
 /** Evidence is immutable once recorded. Correct it by adding new evidence, not editing old. */

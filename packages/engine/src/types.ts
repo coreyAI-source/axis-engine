@@ -120,6 +120,9 @@ export interface AttachmentRef {
   sha256?: string;
 }
 
+/** How the evidence reached the auditor, used in the report's "How received" column. */
+export type CollectedVia = "on_site" | "before_visit" | "after_visit" | "interview" | "calculation";
+
 export interface Evidence {
   id: string;
   auditId: string;
@@ -129,6 +132,7 @@ export interface Evidence {
   attachment?: AttachmentRef;
   collectedBy: Actor;
   collectedAt: string;
+  collectedVia?: CollectedVia;
 }
 
 // ---------------------------------------------------------------- assessments
@@ -153,6 +157,26 @@ export interface RequirementSnapshot {
   weight?: number;
 }
 
+/** Auditor's per-indicator working notes and linked evidence, gathered before choosing an outcome. */
+export interface IndicatorInput {
+  index: number; // 0-based position in Requirement.indicators
+  notes: string;
+  evidenceIds: string[];
+  updatedAt?: string;
+  updatedBy?: Actor;
+}
+
+/** A single AI-generated draft outcome + rationale awaiting auditor sign-off. */
+export interface AssessmentSuggestion {
+  status: AssessmentStatus;
+  rationale: string;
+  model: string;
+  generatedAt: string;
+  generatedBy: Actor;
+  /** Version of the assessment when the suggestion was produced; a later save invalidates it. */
+  basedOnVersion: number;
+}
+
 export interface Assessment extends Versioned {
   auditId: string;
   requirementId: string;
@@ -162,6 +186,8 @@ export interface Assessment extends Versioned {
   snapshot?: RequirementSnapshot;
   assessedBy?: Actor;
   assessedAt?: string;
+  indicatorInputs?: IndicatorInput[];
+  suggestion?: AssessmentSuggestion;
 }
 
 // ---------------------------------------------------------------- findings
