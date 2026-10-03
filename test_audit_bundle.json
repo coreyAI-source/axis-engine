@@ -1,0 +1,66 @@
+{
+  "audit": {
+    "id": "audit-123",
+    "title": "2026 GSTC Sustainability Audit",
+    "site": "Bali Practice Hotel",
+    "status": "reporting",
+    "review_date": "2026-10-02",
+    "reviewer": "Test Auditor"
+  },
+  "assessments": [
+    {
+      "criterion": "A1",
+      "title": "Environmental and social policy",
+      "status": "Conforming",
+      "rationale": "Strong written policy in place, signed by General Manager. Covers environmental conservation, cultural preservation, and community engagement.",
+      "evidence_count": 2
+    },
+    {
+      "criterion": "A2",
+      "title": "Environmental management plan",
+      "status": "Conforming",
+      "rationale": "Comprehensive plan updated annually. Covers water, energy, waste, biodiversity, and community impacts. Implementation tracked quarterly.",
+      "evidence_count": 2
+    },
+    {
+      "criterion": "A3",
+      "title": "Monitoring and evaluation",
+      "status": "Partly met",
+      "rationale": "Monitoring system in place but data collection incomplete for some metrics. Monthly data for energy and water only.",
+      "evidence_count": 1
+    },
+    {
+      "criterion": "B1",
+      "title": "Water consumption",
+      "status": "Conforming",
+      "rationale": "Meters installed and consumption tracked monthly. Current: 312 cubic meters per guest per year (target: 280).",
+      "evidence_count": 2
+    },
+    {
+      "criterion": "B2",
+      "title": "Water sources",
+      "status": "Met",
+      "rationale": "Water sourced from municipal supply confirmed sustainable by local water authority.",
+      "evidence_count": 1
+    },
+    {
+      "criterion": "C1",
+      "title": "Waste reduction",
+      "status": "Not met",
+      "rationale": "Basic waste segregation in place but no formal reduction targets. 45 percent currently to landfill.",
+      "evidence_count": 1
+    },
+    {
+      "criterion": "D1",
+      "title": "Staff wellbeing",
+      "status": "Conforming",
+      "rationale": "Training program covers sustainability and safety. 96 percent annual completion rate. Staff satisfaction 4.2/5.",
+      "evidence_count": 2
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-10-03T03:04:48.520633+00:00",
+    "total_criteria": 7,
+    "total_evidence": 11
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "title": "AXIS Sustainability Readiness Review",
+  "hotel": "Bali Practice Hotel",
+  "location": "Ubud, Bali, Indonesia",
+  "review_date": "2026-10-02",
+  "reviewer": "Test Auditor",
+  "report_reference": "BAL-2026-Q4-001",
+  "cover_page": {
+    "hotel_name": "Bali Practice Hotel",
+    "location": "Ubud, Bali, Indonesia",
+    "contact": "Ketut Wijaya, General Manager",
+    "review_date": "2026-10-02",
+    "reviewer": "Test Auditor",
+    "report_ref": "BAL-2026-Q4-001",
+    "purpose": "GSTC Certification Readiness Assessment"
+  },
+  "assessment_summary": {
+    "criteria_reviewed": 7,
+    "status_summary": {
+      "met": 5,
+      "partly_met": 1,
+      "not_met": 1
+    }
+  },
+  "detailed_findings": [
+    {
+      "criterion": "A1",
+      "title": "Environmental and social policy",
+      "status": "Conforming",
+      "rationale": "Strong written policy in place, signed by General Manager. Covers environmental conservation, cultural preservation, and community engagement.",
+      "evidence_count": 2,
+      "evidence_items": [
+        "A1-policy-doc.pdf",
+        "A1-website-screenshot.png"
+      ]
+    },
+    {
+      "criterion": "A2",
+      "title": "Environmental management plan",
+      "status": "Conforming",
+      "rationale": "Comprehensive plan updated annually. Covers water, energy, waste, biodiversity, and community impacts. Implementation tracked quarterly.",
+      "evidence_count": 2,
+      "evidence_items": [
+        "A2-plan-2026.pdf",
+        "A2-review-minutes.pdf"
+      ]
+    },
+    {
+      "criterion": "A3",
+      "title": "Monitoring and evaluation",
+      "status": "Partly met",
+      "rationale": "Monitoring system in place but data collection incomplete for some metrics. Monthly data for energy and water only.",
+      "evidence_count": 1,
+      "evidence_items": [
+        "A3-energy-water-logs.xlsx"
+      ]
+    },
+    {
+      "criterion": "B1",
+      "title": "Water consumption",
+      "status": "Conforming",
+      "rationale": "Meters installed and consumption tracked monthly. Current: 312 cubic meters per guest per year (target: 280).",
+      "evidence_count": 2,
+      "evidence_items": [
+        "B1-meter-photo.jpg",
+        "B1-tracking-spreadsheet.xlsx"
+      ]
+    },
+    {
+      "criterion": "B2",
+      "title": "Water sources",
+      "status": "Met",
+      "rationale": "Water sourced from municipal supply confirmed sustainable by local water authority.",
+      "evidence_count": 1,
+      "evidence_items": [
+        "B2-municipal-letter.pdf"
+      ]
+    },
+    {
+      "criterion": "C1",
+      "title": "Waste reduction",
+      "status": "Not met",
+      "rationale": "Basic waste segregation in place but no formal reduction targets. 45 percent currently to landfill.",
+      "evidence_count": 1,
+      "evidence_items": [
+        "C1-waste-logs.xlsx"
+      ]
+    },
+    {
+      "criterion": "D1",
+      "title": "Staff wellbeing",
+      "status": "Conforming",
+      "rationale": "Training program covers sustainability and safety. 96 percent annual completion rate. Staff satisfaction 4.2/5.",
+      "evidence_count": 2,
+      "evidence_items": [
+        "D1-training-records.pdf",
+        "D1-satisfaction-survey.xlsx"
+      ]
+    }
+  ],
+  "evidence_register": [
+    {
+      "id": "A1-1",
+      "type": "Document",
+      "description": "A1: A1-policy-doc.pdf"
+    },
+    {
+      "id": "A1-2",
+      "type": "Document",
+      "description": "A1: A1-website-screenshot.png"
+    },
+    {
+      "id": "A2-1",
+      "type": "Document",
+      "description": "A2: A2-plan-2026.pdf"
+    },
+    {
+      "id": "A2-2",
+      "type": "Document",
+      "description": "A2: A2-review-minutes.pdf"
+    },
+    {
+      "id": "A3-1",
+      "type": "Document",
+      "description": "A3: A3-energy-water-logs.xlsx"
+    },
+    {
+      "id": "B1-1",
+      "type": "Document",
+      "description": "B1: B1-meter-photo.jpg"
+    },
+    {
+      "id": "B1-2",
+      "type": "Document",
+      "description": "B1: B1-tracking-spreadsheet.xlsx"
+    },
+    {
+      "id": "B2-1",
+      "type": "Document",
+      "description": "B2: B2-municipal-letter.pdf"
+    },
+    {
+      "id": "C1-1",
+      "type": "Document",
+      "description": "C1: C1-waste-logs.xlsx"
+    },
+    {
+      "id": "D1-1",
+      "type": "Document",
+      "description": "D1: D1-training-records.pdf"
+    },
+    {
+      "id": "D1-2",
+      "type": "Document",
+      "description": "D1: D1-satisfaction-survey.xlsx"
+    }
+  ]
+}
