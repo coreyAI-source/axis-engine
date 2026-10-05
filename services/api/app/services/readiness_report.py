@@ -3,10 +3,32 @@
 Statuses, counts, priorities, evidence IDs and registers are computed from the saved audit.
 Only narrative text (letter summary, gap wording, action plan) comes from the optional AI draft,
 and it is validated against the audit before use.
+
+All criteria come from the official GSTC Hotel Standard v4.01.
 """
 import io
 import re
 from datetime import datetime, timezone
+
+from . import gstc_standard
+
+def _validate_criteria_code(code):
+    """Validate a criteria code against the official GSTC standard.
+
+    Returns the normalized code (e.g., 'a1' -> 'A1') if valid, else None.
+    Custom criteria (X1, X2, etc.) are also allowed for audit-specific items.
+    """
+    code_upper = (code or "").upper()
+
+    # Check official GSTC criteria
+    if gstc_standard.get_criterion(code_upper):
+        return code_upper
+
+    # Allow custom criteria (X1, X2, etc.) for audit-specific items
+    if re.match(r"^X\d+$", code_upper):
+        return code_upper
+
+    return None
 
 PILLARS = [("A", "Sustainable management"), ("B", "Socioeconomic impacts"), ("C", "Cultural impacts"), ("D", "Environmental impacts")]
 OTHER = ("X", "Additional requirements")
@@ -131,9 +153,14 @@ def criterion_rows(bundle, register):
         if not r:
             continue
         code = (r.get("source") or {}).get("clause") or ""
-        if not re.match(r"^[A-D]\d+$", code):
+
+        # Validate code against GSTC standard; use custom code if not recognized
+        validated = _validate_criteria_code(code)
+        if not validated:
             custom += 1
             code = f"X{custom}"
+        else:
+            code = validated
         severity = (a or {}).get("status", "unassessed")
         linked = [register[e] for e in (a or {}).get("evidenceIds", []) if e in register]
         own_findings = [f for f in findings if f.get("requirementId") == requirement_id and f.get("status") != "withdrawn"]

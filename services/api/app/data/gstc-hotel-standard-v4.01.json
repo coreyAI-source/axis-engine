@@ -1,0 +1,1176 @@
+{
+  "version": "4.01",
+  "source": "https://www.gstc.org/wp-content/uploads/GSTC-Hotel-Standard.pdf",
+  "date": "2025-12-30",
+  "total": 40,
+  "criteria": {
+    "A1": {
+      "code": "A1",
+      "title": "Sustainability  Management  System",
+      "statement": "The hotel operates under a \ndocumented sustainability \nmanagement  system  proportional  to its \nsize and scope, ensuring that \nsustainability is managed in a \nsystematic manner and continuous \nimprovement is pursued.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  has a written  sustainability  policy  that outlines  its"
+        },
+        {
+          "number": 2,
+          "text": "The policy  is formally  approved  and communicated  to all"
+        },
+        {
+          "number": 3,
+          "text": "The hotel  maintains  a sustainability  management  plan  that is"
+        },
+        {
+          "number": 4,
+          "text": "The plan  includes  qualitative  and/or  quantitative  targets  for"
+        },
+        {
+          "number": 5,
+          "text": "Targets  are reviewed  annually  and updated  as necessary."
+        },
+        {
+          "number": 6,
+          "text": "The hotel  identifies  potential  sustainability  risks  as part of its"
+        },
+        {
+          "number": 7,
+          "text": "The hotel  allocates  appropriate  financial  and human"
+        },
+        {
+          "number": 8,
+          "text": "The hotel reviews the implementation of its sustainability"
+        }
+      ]
+    },
+    "A10": {
+      "code": "A10",
+      "title": "Land,  Water,  and Property  Rights",
+      "statement": "The hotel acquires land, water, and \nproperty rights through legal and  \nethical  means,  respecting  local,  \ncommunal, and Indigenous rights. \nFree,  prior,  and informed  consent  is \nobtained when applicable and any \npotential negative impacts on local \ncommunities are identified and \nappropriately addressed.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  ensures  all necessary  legal  documentation  is in"
+        },
+        {
+          "number": 2,
+          "text": "For new development projects, expansions, or major"
+        },
+        {
+          "number": 3,
+          "text": "For new  developments  or land  acquisition  projects  in areas"
+        },
+        {
+          "number": 4,
+          "text": "The hotel ensures a grievance mechanism is available for"
+        },
+        {
+          "number": 5,
+          "text": "The hotel’s  annual  sustainability  report  confirms  that land"
+        }
+      ]
+    },
+    "A11": {
+      "code": "A11",
+      "title": "Site Selection,  Planning,  and",
+      "statement": "Development  \nThe site selection, planning, and \ndevelopment of hotel facilities and \nassociated  activities  take  into account \nenvironmental carrying capacity, \ncultural integrity, and social impact. \nThis applies to all new constructions, \nadditions, alterations, upgrades, and \nrefurbishments of existing facilities.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "For new  developments,  expansions,  or major  renovations,"
+        },
+        {
+          "number": 2,
+          "text": "For new developments, expansions, or major renovation"
+        },
+        {
+          "number": 3,
+          "text": "For new  developments,  expansions,  or major  renovations,"
+        },
+        {
+          "number": 4,
+          "text": "For new developments, expansions, or major renovations"
+        }
+      ]
+    },
+    "A12": {
+      "code": "A12",
+      "title": "Buildings,  Construction,  and",
+      "statement": "Infrastructure  \nThe development  and maintenance  of \nhotel buildings, infrastructure, and \nconstruction activities respect \nintegrated local culture, ecosystems, \nand biodiversity, ensuring minimal \nenvironmental  and social  impact.  This \napplies to all new constructions, \nadditions, alterations, and upgrades.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel gives preference to, where feasible, the use of"
+        },
+        {
+          "number": 2,
+          "text": "Where  new  construction,  renovations,  or expansions  take"
+        },
+        {
+          "number": 3,
+          "text": "Where construction, expansion, or major renovation is"
+        },
+        {
+          "number": 4,
+          "text": "Where construction, expansion, or major renovation is"
+        },
+        {
+          "number": 5,
+          "text": "The hotel prioritizes the use of native or endemic plant"
+        },
+        {
+          "number": 6,
+          "text": "Where construction,  expansion, or major renovation is"
+        }
+      ]
+    },
+    "A13": {
+      "code": "A13",
+      "title": "Procurement",
+      "statement": "The hotel implements a responsible \nprocurement policy that gives \npreference to local, fair -trade, and \nenvironmentally friendly products and \nservices, thereby minimizing \nenvironmental  impacts  and maximizing \nlocal community benefits throughout \nthe procurement process.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  has a written  procurement  policy  that gives"
+        },
+        {
+          "number": 2,
+          "text": "The hotel  establishes  targets  for procurement  categories"
+        },
+        {
+          "number": 3,
+          "text": "The hotel establishes targets to purchase products and"
+        },
+        {
+          "number": 4,
+          "text": "When local procurement is not possible, the hotel gives"
+        },
+        {
+          "number": 5,
+          "text": "The procurement policy follows circular economy principles"
+        },
+        {
+          "number": 6,
+          "text": "The hotel  takes  measures  to eliminate  single -use items"
+        },
+        {
+          "number": 7,
+          "text": "The hotel  ensures  that all hotel  signage,  marketing  materials,"
+        },
+        {
+          "number": 8,
+          "text": "The hotel does not purchase, sell, or use products derived"
+        },
+        {
+          "number": 9,
+          "text": "The hotel monitors procurement practices using key"
+        },
+        {
+          "number": 10,
+          "text": "The hotel  integrates  sustainability  indicators  into supplier"
+        },
+        {
+          "number": 11,
+          "text": "The hotel gives preference to suppliers who take and"
+        },
+        {
+          "number": 12,
+          "text": "The hotel’s agreements with suppliers, where applicable,"
+        },
+        {
+          "number": 13,
+          "text": "The hotel  reviews  supplier  compliance  at a minimum  during"
+        },
+        {
+          "number": 14,
+          "text": "The hotel conducts due diligence to ensure that suppliers"
+        }
+      ]
+    },
+    "A14": {
+      "code": "A14",
+      "title": "Food  and Beverages",
+      "statement": "The hotel promotes and provides \nenvironmentally and socially \nresponsible  food  and beverage  options, \nprioritizing locally sourced, organic, \nplant -based, and ethically produced \nalternatives, while implementing food \nwaste  reduction  and sustainable  service \npractices.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel offers dining services that include plant -based,"
+        },
+        {
+          "number": 2,
+          "text": "The hotel recommends or promotes nearby food and"
+        },
+        {
+          "number": 3,
+          "text": "The hotel  gives  preference  to the purchase  of plant -based"
+        },
+        {
+          "number": 4,
+          "text": "The hotel implements practices in kitchens, buffet, and"
+        }
+      ]
+    },
+    "A2": {
+      "code": "A2",
+      "title": "Legal  Compliance",
+      "statement": "The hotel complies with all relevant \nlaws  and regulations  concerning  social, \ncultural, and environmental matters, \nincluding health and safety standards, \nlabor rights, child protection, the \nprevention of human trafficking and \nmodern slavery, and animal welfare.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  maintains  an up-to-date  register  of all applicable"
+        },
+        {
+          "number": 2,
+          "text": "The hotel develops, implements, and enforces internal"
+        }
+      ]
+    },
+    "A3": {
+      "code": "A3",
+      "title": "Guest  and Staff  Welfare",
+      "statement": "The hotel  takes  measures  to support \nthe well -being of guests and staff by \nidentifying potential hazards and \nresponding to any concerns.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel assigns a designated person to oversee"
+        },
+        {
+          "number": 2,
+          "text": "Relevant staff members participate in training or awareness"
+        }
+      ]
+    },
+    "A4": {
+      "code": "A4",
+      "title": "Reporting  and Communication",
+      "statement": "The hotel communicates its \nsustainability policy, actions, and \nperformance  to stakeholders,  including \nguests, and seeks to engage their \nsupport.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  communicates  its sustainability  policy  to"
+        },
+        {
+          "number": 2,
+          "text": "The hotel publishes an annual sustainability report outlining"
+        },
+        {
+          "number": 3,
+          "text": "The hotel’s sustainability report, whether prepared at the"
+        },
+        {
+          "number": 4,
+          "text": "The hotel ensures that its sustainability report —or the"
+        },
+        {
+          "number": 5,
+          "text": "The hotel collects and monitors sustainability data at"
+        },
+        {
+          "number": 6,
+          "text": "The hotel  provides  opportunities  for stakeholders —including"
+        }
+      ]
+    },
+    "A5": {
+      "code": "A5",
+      "title": "Accurate  Promotion",
+      "statement": "The hotel  ensures  that all promotional \nmaterials and marketing \ncommunications are transparent and \nverifiable, accurately representing its \nofferings, facilities, accommodation \ntype, service standards, and \nsustainability commitments without \nany misleading claims.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel ensures that all promotional materials, including"
+        },
+        {
+          "number": 2,
+          "text": "The hotel ensures that promotional materials accurately"
+        },
+        {
+          "number": 3,
+          "text": "The hotel provides transparent and easily accessible"
+        }
+      ]
+    },
+    "A6": {
+      "code": "A6",
+      "title": "Information  Sharing  and Guidance",
+      "statement": "The hotel  provides  information  on the \nnatural and cultural characteristics of \nthe area and explains appropriate \nbehavior when visiting natural or \ncultural sites.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  provides  training  for its staff  on the destination’s"
+        },
+        {
+          "number": 2,
+          "text": "The hotel  makes  information  about  the destination’s  natural"
+        },
+        {
+          "number": 3,
+          "text": "The hotel provides documented behavioral guidelines for"
+        },
+        {
+          "number": 4,
+          "text": "The hotel  provides  documented  guidelines  encouraging"
+        },
+        {
+          "number": 5,
+          "text": "The hotel prioritizes environmentally responsible methods"
+        },
+        {
+          "number": 6,
+          "text": "The hotel  makes  information  available  in languages  that are"
+        },
+        {
+          "number": 7,
+          "text": "The hotel  provides  information  in accessible  formats  when"
+        }
+      ]
+    },
+    "A7": {
+      "code": "A7",
+      "title": "Staff  Engagement",
+      "statement": "The hotel involves its staff in the \ndevelopment, implementation, and \ncontinuous improvement of its \nsustainability management system. \nStaff receive structured training, \nongoing  support,  and recognition  for \ntheir contributions to sustainability.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  engages  staff  in developing  and implementing  the"
+        },
+        {
+          "number": 2,
+          "text": "Staff have clearly defined  roles and responsibilities for"
+        },
+        {
+          "number": 3,
+          "text": "The hotel  provides  staff  with  orientation  and structured"
+        },
+        {
+          "number": 4,
+          "text": "The hotel  maintains  records  of training  sessions  or guidance,"
+        },
+        {
+          "number": 5,
+          "text": "The hotel ensures that training and reference materials are"
+        },
+        {
+          "number": 6,
+          "text": "The hotel sup ports staff in obtaining the necessary job -"
+        },
+        {
+          "number": 7,
+          "text": "The hotel regularly reviews and documents staff"
+        }
+      ]
+    },
+    "A8": {
+      "code": "A8",
+      "title": "Guest  Experience",
+      "statement": "The hotel monitors guest satisfaction, \nincluding  feedback  on sustainability  and \nresponsible practices, and strives for \ncontinuous improvement.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  maintains  a guest  feedback  system."
+        },
+        {
+          "number": 2,
+          "text": "The hotel regularly collects and reviews positive and"
+        },
+        {
+          "number": 3,
+          "text": "The hotel  takes  and documents  corrective  actions  in"
+        },
+        {
+          "number": 4,
+          "text": "The hotel  notifies  guests  about  the corrective  actions."
+        },
+        {
+          "number": 5,
+          "text": "The hotel engages guests in sustainability practices by"
+        }
+      ]
+    },
+    "A9": {
+      "code": "A9",
+      "title": "Collaboration with Stakeholders",
+      "statement": "The hotel collaborates with relevant \nstakeholders  to support  and contribute  \nto sustainable  tourism  development  \nwithin  its destination.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  maintains  documented  engagement  with  relevant"
+        }
+      ]
+    },
+    "B1": {
+      "code": "B1",
+      "title": "Community  support",
+      "statement": "The hotel  supports  the local  community \nthrough structured initiatives that \naddress community needs, foster \ninclusive development, and promote \nsustainable economic and social \nbenefits.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  provides  ongoing  financial  or in-kind  support  to the"
+        },
+        {
+          "number": 2,
+          "text": "The hotel  records  and monitors  the level  and nature  of"
+        },
+        {
+          "number": 3,
+          "text": "The hotel offers  cooperation  or skills -development  programs"
+        }
+      ]
+    },
+    "B2": {
+      "code": "B2",
+      "title": "Local  Employment",
+      "statement": "The hotel provides fair and equitable \nopportunities for local residents to \nobtain  employment  and advance  within \nthe organization, including into \nleadership and management roles.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel maintains a written policy committing to provide"
+        },
+        {
+          "number": 2,
+          "text": "The hotel  implements  its policy  through  transparent  and"
+        },
+        {
+          "number": 3,
+          "text": "The hotel  monitors  the proportion  of local  staff  within  its"
+        },
+        {
+          "number": 4,
+          "text": "The hotel  gives  preference  to suppliers  who  support  local"
+        }
+      ]
+    },
+    "B3": {
+      "code": "B3",
+      "title": "Local  Entrepreneur  Support",
+      "statement": "The hotel  supports  local  entrepreneurs \nand community - or nonprofit -owned \nbusinesses  in developing,  improving,  or \nselling  their  products  and services.  This \ninitiative aims to strengthen the local \neconomy and promote sustainable \nbusiness practices.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "Where appropriate, the hotel supports local entrepreneurs"
+        },
+        {
+          "number": 2,
+          "text": "The hotel promotes the products and services of local"
+        }
+      ]
+    },
+    "B4": {
+      "code": "B4",
+      "title": "Community  Services  and",
+      "statement": "Livelihoods  \nThe hotel  ensures  that its operations \nand commercial activities do not \nadversely impact local community \nservices, livelihoods, or access to \nessential resources.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel’s  operations  do not restrict  local  communities’"
+        },
+        {
+          "number": 2,
+          "text": "The hotel’s  operations  do not impede  local  access  to rights -"
+        },
+        {
+          "number": 3,
+          "text": "The hotel’s  activities  do not restrict  access  to local  residences"
+        },
+        {
+          "number": 4,
+          "text": "The hotel  has a system  in place  for local  communities  to"
+        },
+        {
+          "number": 5,
+          "text": "The hotel  documents  reported  issues  and addresses  them"
+        }
+      ]
+    },
+    "B5": {
+      "code": "B5",
+      "title": "Access  for All",
+      "statement": "The hotel  ensures  that its site, facilities, \nand services are accessible to people of \nall abilities to the greatest extent \npossible, committing to progressive \nimprovements that meet their needs. \nComprehensive, accurate, and  reliable  \ninformation  on accessibility features, \nlimitations, and services is provided.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "Where possible and practicable, the hotel ensures that key"
+        },
+        {
+          "number": 2,
+          "text": "The hotel demonstrates ongoing improvements in"
+        },
+        {
+          "number": 3,
+          "text": "The hotel provides clear and specific details on its"
+        },
+        {
+          "number": 4,
+          "text": "The hotel  provides  communication  materials  for guests  with"
+        },
+        {
+          "number": 5,
+          "text": "The hotel  includes  people  with  disabilities  in the creation,"
+        },
+        {
+          "number": 6,
+          "text": "The hotel goes beyond local accessibility laws by ensuring"
+        }
+      ]
+    },
+    "B6": {
+      "code": "B6",
+      "title": "Code  of Conduct",
+      "statement": "The hotel  has a written  code  of conduct \nto guide the behavior and actions of \nstaff, suppliers, and guests.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  maintains  a written  code  of conduct  that includes  a"
+        },
+        {
+          "number": 2,
+          "text": "The code includes clear guidelines on respectful"
+        },
+        {
+          "number": 3,
+          "text": "The code  contains  clear  guidelines  and safeguards  to prevent"
+        },
+        {
+          "number": 4,
+          "text": "The code  includes  clear  guidance  to ensure  respectful  and"
+        },
+        {
+          "number": 5,
+          "text": "The code  is communicated  to all staff  and regularly  updated."
+        },
+        {
+          "number": 6,
+          "text": "The hotel  provides  regular  training  and guidance  on the code"
+        }
+      ]
+    },
+    "B7": {
+      "code": "B7",
+      "title": "Exploitation,  Harassment,  and",
+      "statement": "Human Traffi cking  \nThe hotel  implements  a comprehensive \nzero -tolerance policy against all forms \nof exploitation, harassment, and  \nhuman trafficking —including forced \nlabor —and provides enhanced \nprotection for vulnerable groups such \nas children (minors), adolescents, \nwome n, Indigenous peoples,  \nminorities,  people  with  disabilities,  and \nother vulnerable populations.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel has a written policy that outlines procedures for"
+        },
+        {
+          "number": 2,
+          "text": "The hotel  communicates  its policy  both  internally  and"
+        },
+        {
+          "number": 3,
+          "text": "The hotel  monitors  the implementation  of the policy  and"
+        },
+        {
+          "number": 4,
+          "text": "The hotel provides staff with guidance and training on"
+        },
+        {
+          "number": 5,
+          "text": "The hotel  maintains  records  demonstrating  that no child"
+        },
+        {
+          "number": 6,
+          "text": "The hotel  requires  suppliers  to comply  with  this policy  and"
+        }
+      ]
+    },
+    "B8": {
+      "code": "B8",
+      "title": "Employment  Inclusion  and Equality",
+      "statement": "The hotel provides inclusion and equal \nemployment opportunities at all levels  \nand for all positions.  Its employment  \npolicy  explicitly  prohibits  discrimination \non the basis of any non –merit -based \ncharacteristics.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel has a written inclusive employment policy that"
+        },
+        {
+          "number": 2,
+          "text": "The hotel  regularly  reviews  and updates  the policy  as"
+        },
+        {
+          "number": 3,
+          "text": "The hotel identifies and documents groups at risk of"
+        },
+        {
+          "number": 4,
+          "text": "The hotel provides training to staff on recognizing,"
+        },
+        {
+          "number": 5,
+          "text": "The hotel monitors the implementation of equal"
+        }
+      ]
+    },
+    "B9": {
+      "code": "B9",
+      "title": "Decent  Work",
+      "statement": "The hotel upholds labor rights by \nensuring a safe and secure working \nenvironment, providing a living wage, \nand offering regular training and \nopportunities for career advancement. \nThis commitment applies to both \ndirectly  employed  staff  and outsourced \nworkers, w ith measures in place to \nprotect vulnerable workers from \nexploitation.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel complies with all relevant national labor"
+        },
+        {
+          "number": 2,
+          "text": "The hotel provides all directly employed staff access to"
+        },
+        {
+          "number": 3,
+          "text": "The hotel ensures that all staff, including contract and"
+        },
+        {
+          "number": 4,
+          "text": "The hotel implements an annual review process for staff"
+        },
+        {
+          "number": 5,
+          "text": "The hotel  offers  appropriate  training  related  to staff  roles,"
+        },
+        {
+          "number": 6,
+          "text": "The hotel  monitors  and records  staff  satisfaction  through"
+        },
+        {
+          "number": 7,
+          "text": "The hotel  has a system  in place  for staff  to raise  and address"
+        }
+      ]
+    },
+    "C1": {
+      "code": "C1",
+      "title": "Cultural  Interactions",
+      "statement": "The hotel informs its guests and staff \nabout local culture, ensuring culturally \nrespectful interactions. A \ncommunication mechanism is in place \nto address concerns from local \ncommunities and Indigenous peoples, \nwith  corrective  actions  implemented  as \nneeded.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  provides  guests  with  educational  or interpretive"
+        },
+        {
+          "number": 2,
+          "text": "The hotel  provides  staff  in guest -facing  roles —such  as front"
+        },
+        {
+          "number": 3,
+          "text": "The hotel  maintains  a communication  channel  through  which"
+        },
+        {
+          "number": 4,
+          "text": "The hotel  reviews  and addresses  all feedback  on cultural"
+        }
+      ]
+    },
+    "C2": {
+      "code": "C2",
+      "title": "Protecting  Cultural  Heritage",
+      "statement": "The hotel  contributes  to protecting  and \nenhancing cultural heritage with \nhistorical, archaeological, traditional, \nand spiritual significance and does not \nimpede local residents’ access.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel contributes to protecting and enhancing local"
+        },
+        {
+          "number": 2,
+          "text": "The hotel  ensures  that its operations  do not impede  local"
+        }
+      ]
+    },
+    "C3": {
+      "code": "C3",
+      "title": "Presenting  Culture  and Heritage",
+      "statement": "The hotel values  and integrates \nauthentic elements of traditional and \ncontemporary local culture into its \noperations,  design,  decoration,  cuisine, \nor shops, while respecting all \nintellectual property rights.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel integrates art, crafts, or design elements that are"
+        },
+        {
+          "number": 2,
+          "text": "Where applicable, the hotel incorporates cultural heritage"
+        },
+        {
+          "number": 3,
+          "text": "The hotel respects intellectual property rights by obtaining"
+        },
+        {
+          "number": 4,
+          "text": "When presenting cultural heritage elements that are"
+        }
+      ]
+    },
+    "C4": {
+      "code": "C4",
+      "title": "Artifacts",
+      "statement": "Artifacts are not sold, traded, or \ndisplayed except as permitted by \napplicable  local  and international  laws.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel complies with all relevant local and international"
+        },
+        {
+          "number": 2,
+          "text": "The hotel maintains an internal inventory of any artifacts in"
+        }
+      ]
+    },
+    "D1": {
+      "code": "D1",
+      "title": "Energy  Conservation",
+      "statement": "The hotel measures and monitors its \nenergy use and implements measures \nto reduce consumption across its \noperations,  while  increasing  the use of \nrenewable energy.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  measures  total  energy  use across  its operations"
+        },
+        {
+          "number": 2,
+          "text": "The hotel uses renewable energy sources where available"
+        },
+        {
+          "number": 3,
+          "text": "The hotel sets annual targets to reduce overall energy"
+        },
+        {
+          "number": 4,
+          "text": "The hotel takes practical steps to reduce energy use. This"
+        },
+        {
+          "number": 5,
+          "text": "The hotel  conducts  regular  maintenance  of energy  and water"
+        },
+        {
+          "number": 6,
+          "text": "The hotel reduces the use of non -renewable fuels in all"
+        },
+        {
+          "number": 7,
+          "text": "The hotel  provides  training  or guidance  on energy -saving"
+        },
+        {
+          "number": 8,
+          "text": "The hotel  communicates  with  guests  about  its energy  policy"
+        }
+      ]
+    },
+    "D10": {
+      "code": "D10",
+      "title": "Invasive  Species",
+      "statement": "The hotel takes measures to prevent \nthe introduction  and spread  of invasive \nspecies, prioritizing native species \nwherever feasible.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  maintains  a documented  list of invasive  plant  and"
+        },
+        {
+          "number": 2,
+          "text": "The hotel  works  with  local  authorities  or conservation  groups"
+        },
+        {
+          "number": 3,
+          "text": "If the hotel  has landscaped  areas,  gardens,  or uses  live plants"
+        },
+        {
+          "number": 4,
+          "text": "The hotel maintains an inventory of plants used in its"
+        }
+      ]
+    },
+    "D11": {
+      "code": "D11",
+      "title": "Interactions  with  Animals",
+      "statement": "The hotel implements responsible \npractices  that prioritize  animal  welfare, \nprotect nature, and prevent harm to \necosystems.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "If the hotel offers wildlife tours and visits to natural areas,"
+        },
+        {
+          "number": 2,
+          "text": "The hotel establishes and implements safety p rotocols"
+        },
+        {
+          "number": 3,
+          "text": "The hotel  prohibits  all close  contact  between  its visitors  and"
+        },
+        {
+          "number": 4,
+          "text": "For destinations where animal interactions are the main"
+        }
+      ]
+    },
+    "D12": {
+      "code": "D12",
+      "title": "Animal  Welfare",
+      "statement": "The hotel ensures the highest \nstandards of animal welfare for any \nanimals  it keeps,  owns,  or manages,  in \ncompliance with relevant laws and \nregulations and industry best practice \nguidelines.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "If the hotel owns or manages animals, it must obtain and"
+        },
+        {
+          "number": 2,
+          "text": "Where animals are temporarily or permanently present at"
+        },
+        {
+          "number": 3,
+          "text": "If the hotel  keeps  or manages  animals,  it must  employ  or"
+        },
+        {
+          "number": 4,
+          "text": "The hotel regularly mon itors and maintains records on the"
+        },
+        {
+          "number": 5,
+          "text": "The hotel  does  not engage  in any animal -based  practices  that"
+        }
+      ]
+    },
+    "D13": {
+      "code": "D13",
+      "title": "Wildlife Harvesting and Trade",
+      "statement": "The hotel commits to ensuring that \nwildlife  species  are never  harvested,  \nconsumed,  displayed,  sold,  or traded  in \nany illegal  or unsustainable  manner.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  maintains  a list of nationally  protected  species,"
+        },
+        {
+          "number": 2,
+          "text": "The hotel provides guidance to guests and staff not to buy,"
+        },
+        {
+          "number": 3,
+          "text": "The hotel does not engage in or support the harvesting,"
+        },
+        {
+          "number": 1,
+          "text": "Sustainability Management System"
+        },
+        {
+          "number": 1,
+          "text": "The policy serves as the foundation for sustainability planning and actions."
+        },
+        {
+          "number": 3,
+          "text": "The plan is aligned with the hotel’s annual budget and staffing capacity, ensuring that"
+        },
+        {
+          "number": 6,
+          "text": "Risks include environmental, social, and cultural factors that may affect the hotel or be"
+        },
+        {
+          "number": 8,
+          "text": "The review of implementation assesses progress and identifies areas for improvement."
+        },
+        {
+          "number": 2,
+          "text": "Legal Compliance"
+        },
+        {
+          "number": 1,
+          "text": "Ap plicable laws and regulations may include human rights, labor rights, health and safety,"
+        },
+        {
+          "number": 2,
+          "text": "Policies and procedures are supported by staff training, do cumented compliance checks,"
+        },
+        {
+          "number": 3,
+          "text": "Guest and Staff Welfare"
+        },
+        {
+          "number": 1,
+          "text": "The hotel may contract an external occupational health and safety professional or"
+        },
+        {
+          "number": 4,
+          "text": "Reporting and Comm unication"
+        },
+        {
+          "number": 2,
+          "text": "The report includes available quantitative data on key indicators such as energy and water"
+        },
+        {
+          "number": 3,
+          "text": "Larger establishments are encouraged to align reporting with recognized frameworks such"
+        },
+        {
+          "number": 4,
+          "text": "Information is accessible to guests, staff, suppliers, lo cal community members, and other"
+        },
+        {
+          "number": 5,
+          "text": "Data stored in written or digital form is shared with third parties only when confidentiality"
+        },
+        {
+          "number": 6,
+          "text": "Feedback mechanisms may be included in the hotel’s  annual sustainability report and/or"
+        },
+        {
+          "number": 5,
+          "text": "Accurate Promotion"
+        }
+      ]
+    },
+    "D2": {
+      "code": "D2",
+      "title": "Water  Conservation",
+      "statement": "The hotel measures and monitors its \nwater  use and implements  measures  to \nreduce consumption across its \noperations, pursuing appropriate \nstewardship goals particularly in areas \nof high -water risk.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  has identified  and documented  the water  risk level"
+        },
+        {
+          "number": 2,
+          "text": "The hotel ensures that its water supply originates from"
+        },
+        {
+          "number": 3,
+          "text": "The hotel  measures  total  water  use in overall  operations  by"
+        },
+        {
+          "number": 4,
+          "text": "The hotel  sets annual  targets  to reduce  water  consumption"
+        },
+        {
+          "number": 5,
+          "text": "The hotel  focuses  on water -efficient  equipment  (e.g.,  low-"
+        },
+        {
+          "number": 6,
+          "text": "The hotel utilizes water efficiently in outdoor operations,"
+        },
+        {
+          "number": 7,
+          "text": "The hotel  has a linen  reuse  program  for guests  staying"
+        },
+        {
+          "number": 8,
+          "text": "The hotel  provides  training  or guidance  on water -saving"
+        },
+        {
+          "number": 9,
+          "text": "The hotel  communicates  with  guests  about  its water  policy"
+        }
+      ]
+    },
+    "D3": {
+      "code": "D3",
+      "title": "Greenhouse  Gas Emissions",
+      "statement": "The hotel identifies, measures, and \ntakes steps to avoid or minimize \ngreenhouse  gas (GHG)  emissions  from \nits operations, and makes an official, \npublic commitment to reducing \nemissions in support of global \ndecarbonization targets and local \nstrategies.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel,  or its parent  group,  makes  a public  commitment"
+        },
+        {
+          "number": 2,
+          "text": "The hotel  sets annual  GHG  reduction  targets  for Scope  1 and"
+        },
+        {
+          "number": 3,
+          "text": "The hotel tracks its annual greenhouse gas emissions for"
+        },
+        {
+          "number": 4,
+          "text": "The hotel  takes  actions  to avoid  and minimize  GHG  emissions"
+        },
+        {
+          "number": 5,
+          "text": "The hotel reports its GHG emissions in its annual"
+        },
+        {
+          "number": 6,
+          "text": "After reducing Scope 1 and 2 emissions —and addressing"
+        },
+        {
+          "number": 7,
+          "text": "The hotel  has a strategy  to phase  out harmful  coolant  gases,"
+        }
+      ]
+    },
+    "D4": {
+      "code": "D4",
+      "title": "Transportation",
+      "statement": "The hotel minimizes transportation \nneeds  and increases  the use of cleaner \nand more resource -efficient \nalternatives by guests, staff, suppliers, \nand its operations.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  utilizes  the most  environmentally  friendly  and"
+        },
+        {
+          "number": 2,
+          "text": "The hotel  provides  transportation  options  such  as carsharing"
+        },
+        {
+          "number": 3,
+          "text": "The hotel  provides  electric  vehicle  charging  stations  (EVCS)"
+        },
+        {
+          "number": 4,
+          "text": "The hotel  provides  bicycle  storage  or facilities  for guests  and"
+        },
+        {
+          "number": 5,
+          "text": "The hotel  provides  guests  with  information  about  alternative"
+        }
+      ]
+    },
+    "D5": {
+      "code": "D5",
+      "title": "Wastewater",
+      "statement": "The hotel ensures that wastewater —\nincluding greywater —is effectively \nmanaged and treated and is only \nreused or discharged when it meets \nsafe,  best -practice  quality  standards  to \nensure  no harm  to the local  population \nand ecosystems.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  complies  with  applicable  laws  regarding"
+        },
+        {
+          "number": 2,
+          "text": "The hotel  documents  evidence  of safe discharge  in line with"
+        },
+        {
+          "number": 3,
+          "text": "Where feasible, the hotel implements water -reuse"
+        },
+        {
+          "number": 4,
+          "text": "The hotel provides technical staff training on wastewater"
+        }
+      ]
+    },
+    "D6": {
+      "code": "D6",
+      "title": "Solid  Waste",
+      "statement": "The hotel manages solid waste in line \nwith the Waste Hierarchy, aiming to \nreduce generation, eliminate food \nwaste and single -use plastics, and \nmaximize  reuse,  recycling,  or recovery. \nResidual waste is  managed through \nlegally  authorized  and environmentally \nresponsible  pathways  to avoid  adverse \nimpacts on the local community and \nthe environment.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  has a written  waste  management  policy  that"
+        },
+        {
+          "number": 2,
+          "text": "The hotel has a solid waste management plan according to"
+        },
+        {
+          "number": 3,
+          "text": "The hotel  measures  total  solid waste  produced  by type  per"
+        },
+        {
+          "number": 4,
+          "text": "The hotel sets annual targets to reduce solid waste"
+        },
+        {
+          "number": 5,
+          "text": "The hotel  provides  basic  waste -segregation  infrastructure"
+        },
+        {
+          "number": 6,
+          "text": "The hotel monitors its use  of single -use items and"
+        },
+        {
+          "number": 7,
+          "text": "The hotel ensures that all waste not recovered on -site is"
+        },
+        {
+          "number": 8,
+          "text": "The hotel provides regular training and guidance to staff"
+        },
+        {
+          "number": 9,
+          "text": "The hotel provides guidance and information to guests"
+        }
+      ]
+    },
+    "D7": {
+      "code": "D7",
+      "title": "Harmful  Substances",
+      "statement": "The hotel minimizes harmful \nsubstances in its operations by \nchoosing environmentally friendly \nproducts and processes when \navailable. All storage, use, handling, \nand disposal  of chemicals  are properly \nand safely managed.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  maintains  an updated  inventory  and Safety  Data"
+        },
+        {
+          "number": 2,
+          "text": "The hotel monitors overall chemical usage to identify"
+        },
+        {
+          "number": 3,
+          "text": "The hotel  sets targets  to increase  the replacement  of harmful"
+        },
+        {
+          "number": 4,
+          "text": "The hotel  ensures  that all chemicals  are stored,  handled,  and"
+        },
+        {
+          "number": 5,
+          "text": "The hotel  provides  staff  with  training  and clear  guidance  on"
+        },
+        {
+          "number": 6,
+          "text": "The hotel informs guests about personal care products and"
+        }
+      ]
+    },
+    "D8": {
+      "code": "D8",
+      "title": "Minimize  Pollution",
+      "statement": "The hotel implements practices to \nminimize pollution from multiple \nsources —including noise, light, runoff, \nerosion, ozone -depleting substances, \nand air, water,  and soil contaminants —\nby identifying potential sources, \nmonitoring impacts, and taking \ntargeted actions to mitigate them.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel  identifies  potential  sources  of pollution  based  on"
+        },
+        {
+          "number": 2,
+          "text": "The hotel  takes  measures  to prevent  and reduce  pollution"
+        },
+        {
+          "number": 3,
+          "text": "The hotel regularly monitors and reviews pollution levels to"
+        },
+        {
+          "number": 4,
+          "text": "When noise pollution sources are identified, the hotel takes"
+        },
+        {
+          "number": 5,
+          "text": "The hotel  takes  steps  to minimize  light  pollution,  particularly"
+        },
+        {
+          "number": 6,
+          "text": "Smoking may be permitted only in clearly designated"
+        }
+      ]
+    },
+    "D9": {
+      "code": "D9",
+      "title": "Biodiversity  Conservation",
+      "statement": "The hotel  contributes  to biodiversity \nconservation while minimizing any \ndisruption to natural ecosystems.",
+      "indicators": [
+        {
+          "number": 1,
+          "text": "The hotel identifies and documents areas and species in its"
+        },
+        {
+          "number": 2,
+          "text": "Where the hotel is located in areas that may directly impact"
+        },
+        {
+          "number": 3,
+          "text": "The hotel provides and records monetary and/or in -kind"
+        },
+        {
+          "number": 4,
+          "text": "The hotel  manages  its property  to support  biodiversity"
+        },
+        {
+          "number": 5,
+          "text": "The hotel  prioritizes  supporting  biodiversity  conservation  in"
+        }
+      ]
+    }
+  }
+}
