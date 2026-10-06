@@ -248,6 +248,17 @@ def ai_facts(bundle, profile):
     register = evidence_register(bundle)
     criteria = criterion_rows(bundle, register)
 
+    # Check for fake/demo criteria in titles
+    fake_keywords = ["DEMO:", "fictional", "pilot", "invented", "sample"]
+    fake_criteria = [row for row in criteria
+                     if any(keyword.lower() in row["title"].lower() for keyword in fake_keywords)]
+
+    if fake_criteria:
+        fake_titles = [f"{row['code']}: {row['title']}" for row in fake_criteria]
+        logger.error(f"Rejecting audit with non-GSTC criteria titles: {fake_titles}")
+        raise ValueError(f"Audit contains fake/demo criteria: {', '.join(fake_titles)}. "
+                        f"Use create_genuine_audit.py to create an audit with official GSTC v4.01 criteria.")
+
     # Filter to only official GSTC criteria (A1-A14, B1-B9, C1-C4, D1-D13)
     official_pattern = r"^[A-D]\d+$"
     official_criteria = [row for row in criteria if re.match(official_pattern, row["code"])]

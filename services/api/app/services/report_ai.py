@@ -69,8 +69,13 @@ CRITICAL RULES (all mandatory—violations disqualify the report):
    - Any criteria codes outside A1–A14, B1–B9, C1–C4, D1–D13
    - Custom "X1, X2, X3..." criteria (except when the audit explicitly states "Additional requirements")
 
-VALIDATION: Before drafting, verify the supplied standard is "GSTC Hotel Standard v4.01"
-If not, return an error in the JSON with a message explaining which criteria are non-compliant.
+VALIDATION: Before drafting, verify:
+1. The supplied standard is "GSTC Hotel Standard v4.01"
+2. NO criteria titles contain "DEMO:", "fictional", "pilot", or "invented"
+3. All criterion codes are A1-A14, B1-B9, C1-C4, or D1-D13
+
+If validation fails, return an error in the JSON with details on what's wrong.
+Do not generate a report with non-official criteria.
 
 REPORT STRUCTURE:
 1. Summary page first: letter_summary, readiness_statement, limitations, and pillar headlines (quick glance overview)
