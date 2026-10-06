@@ -7,10 +7,13 @@ and it is validated against the audit before use.
 All criteria come from the official GSTC Hotel Standard v4.01.
 """
 import io
+import logging
 import re
 from datetime import datetime, timezone
 
 from . import gstc_standard
+
+logger = logging.getLogger(__name__)
 
 def _validate_criteria_code(code):
     """Validate a criteria code against the official GSTC standard.
@@ -238,14 +241,27 @@ def clean_narrative(raw, criteria):
 
 
 def ai_facts(bundle, profile):
-    """The only audit data sent to the AI provider: text records, never files."""
+    """The only audit data sent to the AI provider: text records, never files.
+
+    Filters out non-GSTC criteria to ensure AI only uses official GSTC v4.01 standard.
+    """
     register = evidence_register(bundle)
     criteria = criterion_rows(bundle, register)
+
+    # Filter to only official GSTC criteria (A1-A14, B1-B9, C1-C4, D1-D13)
+    official_pattern = r"^[A-D]\d+$"
+    official_criteria = [row for row in criteria if re.match(official_pattern, row["code"])]
+
+    # Log if any criteria were filtered out
+    if len(official_criteria) < len(criteria):
+        filtered_codes = [row["code"] for row in criteria if not re.match(official_pattern, row["code"])]
+        logger.warning(f"Filtered out non-GSTC criteria from AI input: {filtered_codes}")
+
     return {
         "hotel": {k: profile.get(k, "") for k in ("hotel_name", "location", "hotel_type", "rooms", "staff", "facilities", "occupancy",
                                                    "water_sources", "wastewater", "existing_certifications", "review_date", "staff_present",
                                                    "areas_inspected", "areas_not_inspected", "plan_changes", "key_figures", "legal_items")},
-        "standard": profile.get("standard_used", ""),
+        "standard": "GSTC Hotel Standard v4.01",  # Always reference official standard
         "criteria": [{
             "code": row["code"], "title": row["title"], "status": row["status"], "priority": row["priority"] or None,
             "critical_flag": row["critical"], "auditor_rationale": row["rationale"],
@@ -254,7 +270,7 @@ def ai_facts(bundle, profile):
             "assigned_actions": [x.get("description", "") for x in row["actions"]],
             **({"indicator_notes": [i for i in row["indicator_inputs"] if i["notes"] or i["evidence"]]} if row["indicator_inputs"] else {}),
             **({"statement": row["statement"], "indicators": row["indicators"]} if row["status"] in NEEDS_WORK or row["priority"] == "Improvement" else {}),
-        } for row in criteria],
+        } for row in official_criteria],
     }
 
 
