@@ -31,12 +31,9 @@ class Settings(BaseSettings):
     observation_due_days: int = 60
 
     # AI report drafting (optional; reports work without it).
-    # Default is one model used for everything to start. When you want higher quality
-    # narrative drafting, flip openrouter_model to openai/gpt-6-luna-pro and leave the
-    # mechanical slot on openai/gpt-6-luna.
     openrouter_api_key: str = ""
-    openrouter_model: str = "openai/gpt-6-luna"
-    openrouter_model_mechanical: str = "openai/gpt-6-luna"
+    openrouter_model: str = "anthropic/claude-sonnet-4.5"
+    openrouter_model_mechanical: str = "anthropic/claude-sonnet-4.5"
     openrouter_referer: str = "http://localhost:3000"
 
     # Lag monitoring thresholds (days without activity)
