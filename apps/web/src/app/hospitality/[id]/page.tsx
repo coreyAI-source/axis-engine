@@ -130,7 +130,7 @@ export default function HotelAuditPage() {
       {notice && <p role="status" className={`${s.success} ${s.noPrint}`}>{notice}</p>}
       <div className={`${s.stats} ${s.noPrint}`}>
         <div className={s.stat}><strong>{Math.round((score?.coverage || 0) * 100)}%</strong><span>Applicable criteria assessed</span></div>
-        <div className={s.stat} style={{ ["--tone" as string]: "var(--accent-2)" }}><strong>{data.bundle.evidence.length}</strong><span>Evidence records</span></div>
+        <div className={s.stat} style={{ ["--tone" as string]: "var(--accent-2)" }}><strong>{data.bundle.evidence?.length || 0}</strong><span>Evidence records</span></div>
         <div className={s.stat} style={{ ["--tone" as string]: openFindings ? "var(--red)" : "var(--green)" }}><strong>{openFindings}</strong><span>Open findings</span></div>
         <div className={s.stat} style={{ ["--tone" as string]: openActions ? "var(--amber)" : "var(--green)" }}><strong>{openActions}</strong><span>Actions to resolve</span></div>
       </div>
