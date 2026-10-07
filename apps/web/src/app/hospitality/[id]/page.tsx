@@ -108,18 +108,19 @@ export default function HotelAuditPage() {
   const audit = data?.bundle.audit;
   const score = data?.report.hospitality;
   const complete = audit?.status === "complete";
+  const isGSTC = (data as any)?.type === "GSTC";
   const openFindings = data?.bundle.findings?.filter((f) => f.status === "open").length || 0;
   const openActions = data?.bundle.actions?.filter((a) => !["closed", "cancelled"].includes(a.status)).length || 0;
   const assessedCount = data?.bundle.assessments?.filter((a) => a.status !== "unassessed").length || 0;
-  const tabs: { id: Tab; title: string; count?: number }[] = [
+  const baseTabs: { id: Tab; title: string; count?: number }[] = [
     { id: "overview", title: "Overview" },
-    { id: "assessments", title: "Assessments", count: audit?.requirementIds ? audit.requirementIds.length - assessedCount : undefined },
-    { id: "evidence", title: "Evidence", count: data?.bundle.evidence?.length },
-    { id: "findings", title: "Findings & actions", count: openFindings + openActions || undefined },
-    { id: "criteria", title: "Criteria" },
-    { id: "readiness", title: "Readiness report" },
+    ...(isGSTC ? [] : [{ id: "assessments", title: "Assessments", count: audit?.requirementIds ? audit.requirementIds.length - assessedCount : undefined }]),
+    ...(isGSTC ? [] : [{ id: "evidence", title: "Evidence", count: data?.bundle.evidence?.length }]),
+    ...(isGSTC ? [] : [{ id: "findings", title: "Findings & actions", count: openFindings + openActions || undefined }]),
+    ...(isGSTC ? [] : [{ id: "criteria", title: "Criteria" }]),
     { id: "report", title: "Audit record" },
   ];
+  const tabs = baseTabs;
 
   return <div className={s.page}><AppShell>
     <div className={s.noPrint}><Link href="/hospitality" className={s.back}><ArrowLeft size={14} /> All hotel audits</Link></div>
