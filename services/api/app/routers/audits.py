@@ -12,6 +12,7 @@ from ..schemas.audit import (
     AuditLocationCreate, AuditLocationOut,
     AuditProcessCreate, AuditProcessOut,
 )
+from ..services.audit_validator import validate_audit_against_gstc
 from ..utils.security import get_current_user
 
 router = APIRouter(prefix="/audits", tags=["audits"])
@@ -69,6 +70,38 @@ async def cancel_audit(audit_id: UUID, db: AsyncSession = Depends(get_db), _=Dep
         raise HTTPException(status_code=404, detail="Audit not found")
     obj.status = "Cancelled"
     await db.flush()
+
+
+@router.post("/{audit_id}/validate-gstc")
+async def validate_gstc_requirements(
+    audit_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    _=Depends(get_current_user)
+):
+    """
+    Validate audit against GSTC Section 8.5 requirements.
+
+    Returns validation result with:
+    - is_valid: true if audit meets all GSTC requirements
+    - errors: list of validation errors (if any)
+    - warnings: list of warnings (if any)
+
+    GSTC sections covered:
+    - 8.5.12.1: Auditor conclusions (Conform/NotConform/NotAssessed)
+    - 8.5.12.4-6: Risk assessment (HIGH/LOW/EXTREMELY_LOW)
+    - 8.5.12.8-9: Audit duration rules (1/0.5/2+ days)
+    - 8.5.12.9: Extremely low risk qualification (6 criteria)
+    - 8.5.12.12-14: Sensitive area assessment
+    - 8.5.10.3-4: 3-year certification cycle
+    - 8.5.19.1: Surveillance timing (12/24-month windows)
+    - 8.5.19.5: Section coverage restrictions
+    """
+    obj = await db.get(Audit, audit_id)
+    if not obj:
+        raise HTTPException(status_code=404, detail="Audit not found")
+
+    result = await validate_audit_against_gstc(audit_id, obj)
+    return result
 
 
 # --- Team members ---

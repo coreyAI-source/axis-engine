@@ -119,28 +119,50 @@ async def handle_prompt_response(
     db: AsyncSession,
 ) -> None:
     """
-    Apply business rules when a prompt response is recorded.
+    Apply business rules when a prompt response is recorded (GSTC Section 8.5.12.1).
 
-    NC  → mandatory finding + action (immediate)
-    OBS → optional action (created, no mandatory evidence)
-    FUP → follow-up audit prompt flag only
-    TBA → flag for incomplete review (no action created)
-    C   → no action
-    NA  → no action
+    Auditor conclusion mapping (mandatory):
+    - Conform (C): Requirement is met → no finding
+    - NotConform (NC): Requirement NOT met → mandatory finding + action
+    - NotAssessed (NA): Insufficient evidence → flag for follow-up
+
+    Response status workflow:
+    - NC → mandatory finding + action (with evidence_reference required)
+    - OBS → optional action (observation, not a non-conformity)
+    - FUP → follow-up audit flag
+    - TBA → incomplete review (no action)
+    - C → no action
+    - NA → no action
     """
     status = prompt.response_status
+    conclusion = prompt.auditor_conclusion
+
+    if not prompt.responded_at and status != "Pending":
+        from datetime import datetime, timezone
+        prompt.responded_at = datetime.now(timezone.utc)
 
     if status == "NC":
+        if conclusion != "NotConform":
+            prompt.auditor_conclusion = "NotConform"
+        if not prompt.evidence_reference:
+            prompt.evidence_reference = prompt.comments or "Finding raised from non-conformance response"
         await _create_finding_and_action(prompt, current_user, db, mandatory=True)
     elif status == "OBS":
+        if conclusion != "Conform" and conclusion != "NotAssessed":
+            prompt.auditor_conclusion = "Conform"
         await _create_finding_and_action(prompt, current_user, db, mandatory=False)
+    elif status == "C":
+        if conclusion != "Conform":
+            prompt.auditor_conclusion = "Conform"
+    elif status == "NA":
+        if conclusion != "NotAssessed":
+            prompt.auditor_conclusion = "NotAssessed"
     elif status == "FUP":
-        # Mark for follow-up — a separate follow-up prompt or task should be generated
-        # This is a hook for Phase 3 follow-up automation
-        pass
+        if not prompt.follow_up_notes:
+            prompt.follow_up_notes = prompt.comments or "Follow-up audit required"
     elif status == "TBA":
-        # Unresolved — no action yet but flagged for review
-        pass
+        if conclusion != "NotAssessed":
+            prompt.auditor_conclusion = "NotAssessed"
 
 
 async def _create_finding_and_action(

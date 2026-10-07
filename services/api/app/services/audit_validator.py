@@ -87,6 +87,7 @@ def validate_audit_duration(
         ("HIGH", "onsite"): {"min": 2.0, "max": None, "standard": 2},
         ("EXTREMELY_LOW", "onsite"): {"min": 0.5, "max": 1.0, "standard": 0.5},
         ("LOW", "remote"): {"min": 0.5, "max": 1.0, "standard": 0.5},
+        ("EXTREMELY_LOW", "remote"): {"min": 0.5, "max": 1.0, "standard": 0.5},
         ("HIGH", "remote"): None,  # NOT ALLOWED
     }
 
