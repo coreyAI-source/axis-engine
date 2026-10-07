@@ -9,11 +9,10 @@ from .base import Base
 
 
 class AuditType(str, enum.Enum):
-    INTERNAL = "Internal"
-    EXTERNAL = "External"
-    SURVEILLANCE = "Surveillance"
-    CERTIFICATION = "Certification"
-    FOLLOW_UP = "FollowUp"
+    INITIAL = "Initial"  # First certification audit
+    SURVEILLANCE = "Surveillance"  # Annual audit
+    RECERTIFICATION = "Recertification"  # Year 3 before expiry
+    FOLLOW_UP = "FollowUp"  # After NC remediation
 
 
 class AuditStage(str, enum.Enum):
@@ -39,12 +38,19 @@ class PromptType(str, enum.Enum):
 
 class ResponseStatus(str, enum.Enum):
     PENDING = "Pending"
-    C = "C"
-    NC = "NC"
-    OBS = "OBS"
-    FUP = "FUP"
-    TBA = "TBA"
-    NA = "NA"
+    C = "C"  # Conform - requirement is met
+    NC = "NC"  # Not Conform - requirement NOT met → creates Finding
+    OBS = "OBS"  # Observation - enhancement opportunity
+    FUP = "FUP"  # Follow-up - needs follow-up audit
+    TBA = "TBA"  # To Be Assessed - incomplete review
+    NA = "NA"  # Not Applicable - criterion not applicable
+
+
+class AuditorConclusion(str, enum.Enum):
+    """Auditor's conclusion per GSTC requirement (Section 8.5.12.1)."""
+    CONFORM = "Conform"  # Requirement is met
+    NOT_CONFORM = "NotConform"  # Requirement NOT met
+    NOT_ASSESSED = "NotAssessed"  # Insufficient evidence
 
 
 class Audit(Base):
@@ -54,7 +60,7 @@ class Audit(Base):
     organisation_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("organisations.id"), nullable=False)
     site_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("sites.id"))
     audit_type: Mapped[str] = mapped_column(
-        Enum("Internal", "External", "Surveillance", "Certification", "FollowUp", name="audit_type_enum", native_enum=False),
+        Enum("Initial", "Surveillance", "Recertification", "FollowUp", name="audit_type_enum", native_enum=False),
         nullable=False
     )
     audit_stage: Mapped[str] = mapped_column(
@@ -76,10 +82,43 @@ class Audit(Base):
     criteria_text: Mapped[str | None] = mapped_column(Text)
     start_date: Mapped[date | None] = mapped_column(Date)
     end_date: Mapped[date | None] = mapped_column(Date)
-    duration_days: Mapped[int | None] = mapped_column(Integer)
+    duration_days: Mapped[float | None] = mapped_column(Integer)  # Allow 0.5 for half-day
     main_location: Mapped[str | None] = mapped_column(String(255))
     auditee_contact: Mapped[str | None] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+    # GSTC Risk Assessment Fields (Section 8.5.12.4-6)
+    country_code: Mapped[str | None] = mapped_column(String(2))  # ISO country code
+    country_corruption_index: Mapped[int | None] = mapped_column(Integer)  # Transparency International 0-100
+    risk_level: Mapped[str | None] = mapped_column(
+        Enum("HIGH", "LOW", "EXTREMELY_LOW", name="risk_level_enum", native_enum=False)
+    )
+    risk_assessment_date: Mapped[date | None] = mapped_column(Date)
+    risk_assessment_notes: Mapped[str | None] = mapped_column(Text)
+    has_negative_impacts: Mapped[bool | None] = mapped_column(Boolean)  # Significant likelihood/consequences
+    duration_justification: Mapped[str | None] = mapped_column(Text)  # Why deviating from standard
+
+    # GSTC Sensitive Area Fields (Section 8.5.12.12-14)
+    is_sensitive_area: Mapped[bool] = mapped_column(Boolean, default=False)
+    sensitive_area_reason: Mapped[str | None] = mapped_column(Text)  # UNESCO/IUCN/Ramsar/National law
+    sensitive_area_coordinates: Mapped[str | None] = mapped_column(String(100))  # lat,long
+    national_legislation_reference: Mapped[str | None] = mapped_column(Text)
+
+    # Hotel-Specific Characteristics for Extremely Low Risk (Section 8.5.12.9)
+    guest_room_count: Mapped[int | None] = mapped_column(Integer)
+    staff_count: Mapped[int | None] = mapped_column(Integer)
+    has_event_spaces: Mapped[bool] = mapped_column(Boolean, default=False)
+    has_function_spaces: Mapped[bool] = mapped_column(Boolean, default=False)
+    has_meeting_spaces: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_local_ownership: Mapped[bool | None] = mapped_column(Boolean)
+    has_internet_access: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # GSTC 3-Year Certification Cycle Tracking (Section 8.5.10.3-4)
+    certification_start_date: Mapped[date | None] = mapped_column(Date)
+    certification_expiry_date: Mapped[date | None] = mapped_column(Date)
+    last_on_site_audit_date: Mapped[date | None] = mapped_column(Date)  # For 2-year on-site requirement
+    last_audit_date: Mapped[date | None] = mapped_column(Date)  # For 24-month surveillance window
+    audit_cycle_number: Mapped[int | None] = mapped_column(Integer)
 
     organisation: Mapped["Organisation"] = relationship("Organisation")
     site: Mapped["Site | None"] = relationship("Site")
@@ -150,6 +189,16 @@ class AuditPrompt(Base):
     comments: Mapped[str | None] = mapped_column(Text)
     responded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     responded_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
+
+    # GSTC Auditor Conclusion Fields (Section 8.5.12.1)
+    auditor_conclusion: Mapped[str | None] = mapped_column(
+        Enum("Conform", "NotConform", "NotAssessed", name="auditor_conclusion_enum", native_enum=False)
+    )  # Mandatory per GSTC - cannot be null for responding prompts
+    evidence_type: Mapped[str | None] = mapped_column(String(100))  # Document, Interview, Observation, Record
+    evidence_reference: Mapped[str | None] = mapped_column(Text)  # Which docs/records reviewed
+    basis_for_conclusion: Mapped[str | None] = mapped_column(Text)  # Why auditor reached this conclusion
+    observation_notes: Mapped[str | None] = mapped_column(Text)  # If OBS finding
+    follow_up_notes: Mapped[str | None] = mapped_column(Text)  # If FUP needed
 
     audit: Mapped["Audit"] = relationship("Audit", back_populates="prompts")
     process: Mapped["Process | None"] = relationship("Process")
