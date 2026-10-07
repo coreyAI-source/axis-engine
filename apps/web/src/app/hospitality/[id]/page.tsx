@@ -113,7 +113,7 @@ export default function HotelAuditPage() {
   const assessedCount = data?.bundle.assessments?.filter((a) => a.status !== "unassessed").length || 0;
   const tabs: { id: Tab; title: string; count?: number }[] = [
     { id: "overview", title: "Overview" },
-    { id: "assessments", title: "Assessments", count: audit ? audit.requirementIds.length - assessedCount : undefined },
+    { id: "assessments", title: "Assessments", count: audit?.requirementIds ? audit.requirementIds.length - assessedCount : undefined },
     { id: "evidence", title: "Evidence", count: data?.bundle.evidence?.length },
     { id: "findings", title: "Findings & actions", count: openFindings + openActions || undefined },
     { id: "criteria", title: "Criteria" },
@@ -141,7 +141,7 @@ export default function HotelAuditPage() {
           <div className={s.card}><h2>Work through your hotel audit</h2>{[
             ["evidence", "Collect evidence", "Upload files or record observations and interviews."], ["assessments", "Assess each criterion", "Check the performance indicators, choose an outcome and link evidence."], ["findings", "Resolve findings", "Assign actions, submit implementation and verify independently."], ["readiness", "Write the readiness report", "Fill in report details, generate the AI draft, review it and download it as Word."],
           ].map(([target, title, text], index) => <div className={s.step} key={target}><span className={s.stepNumber}>{index + 1}</span><div><button className={s.linkButton} onClick={() => setTab(target as Tab)}>{title} →</button><p>{text}</p></div></div>)}</div>
-          <div className={s.card}><h2>Progress by section</h2><p className={s.small} style={{ marginTop: 4 }}>{audit.requirementIds.length} criteria in scope · {data.bundle.requirements?.filter((r) => r.reviewStatus === "draft").length || 0} awaiting review</p>
+          <div className={s.card}><h2>Progress by section</h2><p className={s.small} style={{ marginTop: 4 }}>{audit?.requirementIds?.length || 0} criteria in scope · {data.bundle.requirements?.filter((r) => r.reviewStatus === "draft").length || 0} awaiting review</p>
             <div className={s.bars}>{score?.categories.map((category) => <div className={s.barRow} key={category.category}><span>{category.category}</span><span className={s.small}>{category.assessed}/{category.applicable}{category.score != null ? ` · ${category.score}%` : ""}</span><progress className={s.progress} max={Math.max(category.applicable, 1)} value={category.assessed} aria-label={`${category.category} assessed`} /></div>)}</div>
             <hr className={s.rule} /><h3>Provisional rating</h3><p className={s.subtitle} style={{ marginTop: 4 }}>{score?.rating || "Not rated"} · Score {score?.score == null ? "not available" : `${score.score}%`}</p>{score?.blockers.length ? <ul className={s.bulletList} style={{ marginTop: 10 }}>{score.blockers.map((message) => <li key={message}>{message}</li>)}</ul> : null}
           </div>
