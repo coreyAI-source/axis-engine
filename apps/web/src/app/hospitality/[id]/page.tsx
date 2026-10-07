@@ -448,7 +448,7 @@ function AssessmentPanel({ data, disabled, command, suggest, goEvidence }: { dat
   </div>;
 }
 
-function EvidencePanel({ evidence, editable, disabled, command, upload, draftMetadata, download }: { evidence: Evidence[]; editable: boolean; disabled: boolean; command: Command; upload: (file: File, description: string, collectedVia?: string) => Promise<boolean>; draftMetadata: (file: File) => Promise<EvidenceDraft | null>; download: (evidence: Evidence) => Promise<void> }) {
+function EvidencePanel({ evidence = [], editable, disabled, command, upload, draftMetadata, download }: { evidence?: Evidence[]; editable: boolean; disabled: boolean; command: Command; upload: (file: File, description: string, collectedVia?: string) => Promise<boolean>; draftMetadata: (file: File) => Promise<EvidenceDraft | null>; download: (evidence: Evidence) => Promise<void> }) {
   const [mode, setMode] = useState("upload");
   const [validation, setValidation] = useState("");
   const [description, setDescription] = useState("");
