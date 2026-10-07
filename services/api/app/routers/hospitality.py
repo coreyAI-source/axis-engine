@@ -66,10 +66,20 @@ async def create_member(payload: MemberCreate, db: AsyncSession = Depends(get_db
 
 async def get_audit(audit_id, db, user):
     require_role(user, READERS)
+    from ..models.audit import Audit
+
+    # Try HospitalityAudit first
     row = await db.scalar(select(HospitalityAudit).where(HospitalityAudit.id == audit_id, HospitalityAudit.organisation_id == user.organisation_id))
-    if row is None:
-        raise HTTPException(404, "Hotel audit not found.")
-    return row
+    if row:
+        return row
+
+    # Try GSTC Audit
+    gstc_row = await db.scalar(select(Audit).where(Audit.id == audit_id, Audit.organisation_id == user.organisation_id))
+    if gstc_row:
+        # Return GSTC audit as a dict-like object compatible with detail()
+        return gstc_row
+
+    raise HTTPException(404, "Hotel audit not found.")
 
 
 def summary(row):
@@ -77,6 +87,43 @@ def summary(row):
 
 
 async def detail(row, user, warnings=None):
+    from ..models.audit import Audit
+
+    # Handle GSTC Audit
+    if isinstance(row, Audit):
+        return {
+            "id": str(row.id),
+            "title": row.auditee_name,
+            "site_name": row.main_location,
+            "status": row.status,
+            "version": 1,
+            "updated_at": (row.created_at or row.start_date).isoformat(),
+            "type": "GSTC",
+            "bundle": {
+                "audit": {
+                    "id": str(row.id),
+                    "title": row.auditee_name,
+                    "siteName": row.main_location,
+                    "status": row.status,
+                },
+                "gstc_data": {
+                    "country_code": row.country_code,
+                    "risk_level": row.risk_level,
+                    "duration_days": row.duration_days,
+                    "guest_rooms": row.guest_room_count,
+                    "staff_count": row.staff_count,
+                },
+            },
+            "report": {
+                "type": "GSTC Audit",
+                "property": row.auditee_name,
+                "location": row.main_location,
+                "status": row.status,
+            },
+            "warnings": warnings or [],
+        }
+
+    # Handle HospitalityAudit
     report = await run_engine("report", user, row.bundle)
     return {**summary(row), "bundle": row.bundle, "report": report["value"]["report"], "warnings": warnings or []}
 
@@ -101,8 +148,28 @@ async def save_bundle(row, expected, bundle, db, user):
 @router.get("/audits")
 async def list_audits(db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
     require_role(user, READERS)
+    from ..models.audit import Audit
+
+    # Get HospitalityAudits
     result = await db.execute(select(HospitalityAudit).where(HospitalityAudit.organisation_id == user.organisation_id).order_by(HospitalityAudit.updated_at.desc()))
-    return [summary(row) for row in result.scalars()]
+    audits = [summary(row) for row in result.scalars()]
+
+    # Get GSTC Audits
+    result = await db.execute(select(Audit).where(Audit.organisation_id == user.organisation_id).order_by(Audit.created_at.desc()))
+    gstc_audits = result.scalars().all()
+
+    for audit in gstc_audits:
+        audits.append({
+            "id": str(audit.id),
+            "title": audit.auditee_name,
+            "site_name": audit.main_location,
+            "status": audit.status or "Planned",
+            "version": 1,
+            "updated_at": (audit.created_at or audit.start_date).isoformat(),
+            "type": "GSTC",
+        })
+
+    return sorted(audits, key=lambda x: x["updated_at"], reverse=True)
 
 
 @router.post("/audits", status_code=201)

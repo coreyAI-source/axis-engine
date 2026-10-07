@@ -1,4 +1,4 @@
-"""GSTC audit validation rules per Accreditation Manual v3.0, Section 8.5."""
+"""GSTC audit validation rules per Accreditation Manual v5.0, Section 8.5."""
 from datetime import date, datetime, timezone
 from typing import Tuple
 
@@ -9,7 +9,7 @@ def validate_risk_level(
     has_negative_impacts: bool | None = None,
 ) -> Tuple[bool, str | None]:
     """
-    Validate risk level determination per GSTC Section 8.5.12.6.
+    Validate risk level determination per GSTC Section 8.5.12.6 (v5.0).
 
     Returns:
     - (True, None) if valid
@@ -18,10 +18,10 @@ def validate_risk_level(
     HIGH RISK if:
     - Significant likelihood and consequences of negative environmental/social/
       economic/cultural impacts, OR
-    - Country corruption perception index < 50
+    - Country Rule of Law Index < 0.60 (GSTC 8.13.3)
 
     LOW RISK if:
-    - Minimal likelihood/consequences AND country index >= 50
+    - Minimal likelihood/consequences AND country Rule of Law Index >= 0.60
 
     EXTREMELY_LOW RISK:
     - All hotel characteristics must be met (validated separately)
@@ -35,14 +35,14 @@ def validate_risk_level(
         return False, f"Invalid risk level: {risk_level}. Must be HIGH, LOW, or EXTREMELY_LOW"
 
     if risk_level == "HIGH":
-        if has_negative_impacts is False and (country_corruption_index is None or country_corruption_index >= 50):
-            return False, "HIGH risk cannot be assigned when no negative impacts and country index >= 50"
+        if has_negative_impacts is False and (country_corruption_index is None or country_corruption_index >= 60):
+            return False, "HIGH risk cannot be assigned when no negative impacts and country Rule of Law Index >= 0.60"
 
     if risk_level == "LOW":
         if has_negative_impacts is True:
             return False, "LOW risk cannot be assigned with significant negative impacts"
-        if country_corruption_index is not None and country_corruption_index < 50:
-            return False, "LOW risk cannot be assigned when country corruption index < 50"
+        if country_corruption_index is not None and country_corruption_index < 60:
+            return False, "LOW risk cannot be assigned when country Rule of Law Index < 0.60"
 
     return True, None
 
@@ -129,11 +129,11 @@ def validate_extremely_low_risk_qualification(
     is_sensitive_area: bool,
 ) -> Tuple[bool, list[str]]:
     """
-    Check if hotel qualifies for extremely low risk per GSTC 8.5.12.9.
+    Check if hotel qualifies for extremely low risk per GSTC 8.5.12.9 (v5.0).
 
     ALL criteria must be met:
-    - Fewer than 20 guest rooms
-    - Less than 15 staff
+    - 20 rooms or fewer
+    - 5 staff or fewer (v5.0 change: was <15 in v3.0)
     - No event/function/meeting spaces
     - Local ownership
     - Internet access
@@ -145,11 +145,11 @@ def validate_extremely_low_risk_qualification(
     """
     failures = []
 
-    if guest_room_count is None or guest_room_count >= 20:
-        failures.append("Guest rooms >= 20 (GSTC 8.5.12.9 requires < 20)")
+    if guest_room_count is None or guest_room_count > 20:
+        failures.append("Guest rooms > 20 (GSTC 8.5.12.9 requires <= 20)")
 
-    if staff_count is None or staff_count >= 15:
-        failures.append("Staff >= 15 (GSTC 8.5.12.9 requires < 15)")
+    if staff_count is None or staff_count > 5:
+        failures.append("Staff > 5 (GSTC 8.5.12.9 v5.0 requires <= 5)")
 
     if has_event_spaces or has_function_spaces or has_meeting_spaces:
         failures.append("Has event/function/meeting spaces (must have none)")
@@ -233,12 +233,12 @@ def validate_surveillance_audit_dates(
     today: date | None = None,
 ) -> Tuple[bool, list[str]]:
     """
-    Validate surveillance audit timing per GSTC 8.5.19.
+    Validate surveillance audit timing per GSTC 8.5.19 (v5.0).
 
     Requirements:
-    - On-site audits: at least once every 2 years (24 months)
-    - Surveillance audits: at least annually (12 months)
-    - First surveillance: not more than 24 months from initial audit
+    - Surveillance audits: at least annually (12 months) - GSTC 8.18.2
+    - First surveillance: within 12 months of initial audit (v5.0 change: was 24 months)
+    - On-site audits: at least once every 24 months - GSTC 8.18.5.2
 
     Returns:
     - (True, []) if valid
@@ -254,13 +254,13 @@ def validate_surveillance_audit_dates(
             days_since = (today - last_audit_date).days
             months_since = days_since / 30.0
             if months_since > 12.5:
-                failures.append(f"Last audit {months_since:.1f} months ago (must be <= 12 per GSTC 8.5.19.1)")
+                failures.append(f"Last audit {months_since:.1f} months ago (must be <= 12 per GSTC 8.18.2)")
 
         if last_on_site_audit_date:
             days_since_onsite = (today - last_on_site_audit_date).days
             months_since_onsite = days_since_onsite / 30.0
             if months_since_onsite > 24.5:
-                failures.append(f"Last on-site audit {months_since_onsite:.1f} months ago (must be <= 24 per GSTC 8.5.19.1)")
+                failures.append(f"Last on-site audit {months_since_onsite:.1f} months ago (must be <= 24 per GSTC 8.18.5.2)")
 
     return (len(failures) == 0, failures)
 

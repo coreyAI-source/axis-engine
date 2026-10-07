@@ -25,9 +25,9 @@ class Settings(BaseSettings):
     storage_bucket: str = "axis-evidence"
     storage_region: str = "us-east-1"
 
-    # Action due-date defaults (days)
+    # Action due-date defaults (days) - per GSTC v5.0, both major and minor now have 90 days
     major_nc_due_days: int = 90
-    minor_nc_due_days: int = 30
+    minor_nc_due_days: int = 90
     observation_due_days: int = 60
 
     # AI report drafting (optional; reports work without it).

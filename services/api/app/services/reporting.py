@@ -3,13 +3,16 @@ Report generation service.
 
 Builds structured data dicts for all formal audit artefacts.
 Conditional logic per spec section 11.
+
+KEY: High-quality GSTC reports require ACTUAL audit data from AuditPrompts.
+This service extracts real responses, evidence, and conclusions to feed the AI.
 """
 from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from ..models.audit import Audit, AuditTeamMember, AuditLocation
+from ..models.audit import Audit, AuditTeamMember, AuditLocation, AuditPrompt
 from ..models.evidence import Finding
 from ..models.org import User
 from ..config import settings
@@ -35,6 +38,65 @@ async def _load_audit(audit_id: UUID, db: AsyncSession) -> Audit | None:
 async def _load_findings(audit_id: UUID, db: AsyncSession) -> list[Finding]:
     result = await db.execute(select(Finding).where(Finding.audit_id == audit_id))
     return result.scalars().all()
+
+
+async def _load_audit_prompts(audit_id: UUID, db: AsyncSession) -> list[AuditPrompt]:
+    """Load all audit prompts with responses for this audit."""
+    result = await db.execute(
+        select(AuditPrompt).where(AuditPrompt.audit_id == audit_id)
+    )
+    return result.scalars().all()
+
+
+async def _extract_audit_facts(audit: Audit, prompts: list[AuditPrompt]) -> dict:
+    """Extract ACTUAL audit data from prompts to feed AI report generation.
+
+    This ensures the report uses REAL findings, not made-up data.
+    Each finding includes actual evidence references and auditor conclusions.
+    """
+    conform_count = sum(1 for p in prompts if p.response_status == "C")
+    nc_count = sum(1 for p in prompts if p.response_status == "NC")
+    obs_count = sum(1 for p in prompts if p.response_status == "OBS")
+
+    # Extract real evidence references
+    evidence_refs = []
+    for p in prompts:
+        if p.evidence_reference:
+            evidence_refs.extend(p.evidence_reference.split(","))
+    evidence_ids = list(set(ref.strip() for ref in evidence_refs if ref.strip()))
+
+    # Extract real conclusions
+    conclusions_data = []
+    for p in prompts:
+        if p.auditor_conclusion and p.response_status in ("C", "NC", "OBS"):
+            conclusions_data.append({
+                "status": p.response_status,
+                "conclusion": p.auditor_conclusion,
+                "evidence": p.evidence_reference or "Not specified",
+                "basis": p.basis_for_conclusion or "Evidence reviewed",
+            })
+
+    return {
+        "audit_property": audit.auditee_name,
+        "audit_location": audit.main_location,
+        "audit_type": audit.audit_type,
+        "audit_date": _fmt_date(audit.start_date),
+        "duration_days": audit.duration_days,
+        "risk_level": audit.risk_level,
+        "summary": {
+            "total_prompts": len(prompts),
+            "conform_count": conform_count,
+            "notconform_count": nc_count,
+            "observation_count": obs_count,
+            "conform_percentage": round(100 * conform_count / len(prompts)) if prompts else 0,
+        },
+        "evidence_ids": evidence_ids,
+        "conclusions": conclusions_data,
+        "audit_scope": audit.scope,
+        "audit_objective": audit.objective,
+        "standard": "GSTC Hotel Standard v4.01",
+        "pillars": ["A: Sustainable Management", "B: Socioeconomic Benefits", "C: Cultural Heritage", "D: Environmental Benefits"],
+    }
 
 
 async def build_document_review_report(audit_id: UUID, db: AsyncSession) -> dict:
@@ -141,9 +203,19 @@ async def build_audit_timetable(audit_id: UUID, db: AsyncSession) -> dict:
 
 
 async def build_audit_report(audit_id: UUID, db: AsyncSession) -> dict:
+    """Build comprehensive audit report with ACTUAL audit data from prompts.
+
+    CRITICAL: This function now extracts real audit responses, evidence references,
+    and conclusions from AuditPrompts. This ensures any AI report generation receives
+    FACTS, not made-up data.
+    """
     audit = await _load_audit(audit_id, db)
     if not audit:
         return {"error": "Audit not found"}
+
+    # Load ACTUAL audit data from prompts
+    prompts = await _load_audit_prompts(audit_id, db)
+    actual_facts = await _extract_audit_facts(audit, prompts)
 
     findings = await _load_findings(audit_id, db)
     major_ncs = [f for f in findings if f.finding_type == "MajorNC"]
@@ -151,7 +223,7 @@ async def build_audit_report(audit_id: UUID, db: AsyncSession) -> dict:
     observations = [f for f in findings if f.finding_type == "Observation"]
     positives = [f for f in findings if f.finding_type == "Positive"]
 
-    # Conditional narrative
+    # Conditional narrative based on ACTUAL findings
     if not major_ncs:
         major_nc_statement = "No major nonconformances were identified during this audit."
     else:
@@ -192,6 +264,22 @@ async def build_audit_report(audit_id: UUID, db: AsyncSession) -> dict:
             "It must not be distributed or reproduced without authorisation."
         ),
         "signature_block": {"lead_auditor": _user_name(audit.lead_auditor), "date": _fmt_date(audit.end_date)},
+        # ✅ CRITICAL FIX: Include ACTUAL audit facts for AI report generation
+        # This data feeds the AI so it generates reports based on REAL findings, not fiction
+        "actual_audit_facts": actual_facts,
+        "prompt_responses": {
+            "total": len(prompts),
+            "conform": actual_facts["summary"]["conform_count"],
+            "notconform": actual_facts["summary"]["notconform_count"],
+            "observations": actual_facts["summary"]["observation_count"],
+            "evidence_references": actual_facts["evidence_ids"],
+        },
+        # ✅ GSTC v5.0 COMPLIANCE: Mandatory disclaimer for readiness reports
+        "disclaimer": (
+            "This is a self-assessment and readiness review. It is not a GSTC certification, "
+            "verification or endorsement, and it does not predict the outcome of an audit by a "
+            "GSTC-accredited certification body."
+        ),
     }
 
 
