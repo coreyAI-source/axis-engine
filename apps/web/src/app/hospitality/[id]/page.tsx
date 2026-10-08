@@ -114,7 +114,7 @@ export default function HotelAuditPage() {
   const assessedCount = data?.bundle.assessments?.filter((a) => a.status !== "unassessed").length || 0;
   const baseTabs: { id: Tab; title: string; count?: number }[] = [
     { id: "overview", title: "Overview" },
-    ...(isGSTC ? [] : [{ id: "assessments", title: "Assessments", count: audit?.requirementIds ? audit.requirementIds.length - assessedCount : undefined }]),
+    { id: "assessments", title: "Assessments", count: (data?.bundle.requirements?.length || 0) - assessedCount },
     ...(isGSTC ? [] : [{ id: "evidence", title: "Evidence", count: data?.bundle.evidence?.length }]),
     ...(isGSTC ? [] : [{ id: "findings", title: "Findings & actions", count: openFindings + openActions || undefined }]),
     ...(isGSTC ? [] : [{ id: "criteria", title: "Criteria" }]),

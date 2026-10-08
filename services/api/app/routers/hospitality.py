@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import get_db
 from ..models.hospitality import HospitalityAudit, HospitalityFile
+from ..models.audit import AuditPrompt
 from ..models.org import User
 from ..schemas.hospitality import AuditCreate, Command, INPUT_MODELS, MemberCreate, ReadinessProfile, SuggestRequest
 from ..services import ingest_ai, readiness_report as readiness, report_ai, report_critique, suggest_ai
@@ -91,6 +92,29 @@ async def detail(row, user, warnings=None):
 
     # Handle GSTC Audit
     if isinstance(row, Audit):
+        from sqlalchemy import select as sa_select
+        # Fetch prompts for this audit
+        prompts_result = await db.execute(sa_select(AuditPrompt).where(AuditPrompt.audit_id == row.id).order_by(AuditPrompt.prompt_order))
+        prompts = prompts_result.scalars().all()
+
+        # Convert prompts to requirements/assessments format
+        requirements = []
+        assessments = []
+        for prompt in prompts:
+            req_id = str(prompt.id)
+            requirements.append({
+                "id": req_id,
+                "text": prompt.question or prompt.requirement_text or "",
+                "title": prompt.section or "Assessment Criterion",
+                "source": {"clause": prompt.criterion_code or ""},
+            })
+            assessments.append({
+                "requirementId": req_id,
+                "status": "conform" if prompt.response_status == "C" else "not_conform" if prompt.response_status == "NC" else "observation" if prompt.response_status == "OBS" else "unassessed",
+                "rationale": prompt.basis_for_conclusion or "",
+                "evidenceIds": [],
+            })
+
         return {
             "id": str(row.id),
             "title": row.auditee_name,
@@ -113,6 +137,13 @@ async def detail(row, user, warnings=None):
                     "guest_rooms": row.guest_room_count,
                     "staff_count": row.staff_count,
                 },
+                "requirements": requirements,
+                "assessments": assessments,
+                "evidence": [],
+                "findings": [],
+                "actions": [],
+                "config": {"minRationaleLength": 20},
+                "template": None,
             },
             "report": {
                 "type": "GSTC Audit",
