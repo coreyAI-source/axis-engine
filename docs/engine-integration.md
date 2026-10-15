@@ -17,7 +17,7 @@ The ZIP is a standalone library, not an upgrade of the current web app. Its embe
 ## Available rules
 
 - Draft requirements and reviewer approval before adding criteria to audits.
-- Single/integrated ISO scope, offshore and hospitality modules.
+- Single/integrated ISO scope and the hospitality module.
 - Evidence and rationale checks, version checks and historical requirement snapshots.
 - Minor/major finding reconciliation, withdrawal reasons and corrective actions.
 - Implementation evidence, verifier independence and closure checks.

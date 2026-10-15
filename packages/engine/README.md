@@ -1,6 +1,6 @@
 # AXIS Audit Engine
 
-The shared rules core for all three AXIS modules (ISO, offshore, hospitality). The core is pure TypeScript with no database, network, clock or framework. Imported into `axis-engine/packages/engine` from the supplied ZIP. The new `server.ts` adapter now powers the FastAPI/Next.js hospitality pilot; see [integration notes](../../docs/engine-integration.md). The D1 example below is an illustrative adapter sketch, not this project's current backend.
+The shared rules core for all three AXIS modules (ISO, hospitality). The core is pure TypeScript with no database, network, clock or framework. Imported into `axis-engine/packages/engine` from the supplied ZIP. The new `server.ts` adapter now powers the FastAPI/Next.js hospitality pilot; see [integration notes](../../docs/engine-integration.md). The D1 example below is an illustrative adapter sketch, not this project's current backend.
 
 ```
 npm test          # business rules, regressions and one full demo cycle per module
@@ -65,7 +65,7 @@ Build `ctx.actor` from the platform session on the server, never from the reques
 
 ## Decisions still needed (placeholders in `config.ts`)
 
-- **Tarren:** major/minor default days (14/30 for now), what counts as a "critical gap", hospitality points, bands and minimum coverage.
+- **Lead auditor:** major/minor default days (14/30 for now), what counts as a "critical gap", hospitality points, bands and minimum coverage.
 - **Corey:** whether an audit may be completed while actions remain open (currently allowed, with a warning).
 - **Design question:** the hospitality rating reflects conditions *at audit time*, so a major finding caps the rating even after its action is closed. Confirm that this is what you want.
 

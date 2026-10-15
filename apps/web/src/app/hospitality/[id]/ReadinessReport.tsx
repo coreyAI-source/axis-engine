@@ -93,7 +93,7 @@ export default function ReadinessPanel({ auditId, version, editable, fail }: { a
       {message && <p role="status" className={s.success}>{message}</p>}
       {!view.ai_configured && <div className={s.notice}><strong>AI drafting is off</strong>Add <code>OPENROUTER_API_KEY=…</code> to <code>services/api/.env</code> and restart the API to enable it. The report below still works: sections needing wording are highlighted for you to write.</div>}
       {r.ai && <p className={s.small}>AI draft by {r.ai.generated_by} · {dateTime(r.ai.generated_at)} · model {r.ai.model}</p>}
-      {r.ai?.stale && <p className={s.error} style={{ marginTop: 12 }}>The audit has changed since this draft was generated. Regenerate it, or check the wording against the current assessments.</p>}
+      {r.ai?.stale && <p className={s.error} style={{ marginTop: 12 }}>The assessment has changed since this draft was generated. Regenerate it, or check the wording against the current assessments.</p>}
       {r.review_notes.length > 0 && <><h3 style={{ marginTop: 16 }}>Before issuing</h3><ul className={s.bulletList}>{r.review_notes.map((note) => <li key={note}>{note}</li>)}</ul></>}
       {critique && <section style={{ marginTop: 16 }}>
         <h3>Critique</h3>
@@ -126,7 +126,7 @@ export default function ReadinessPanel({ auditId, version, editable, fail }: { a
 function ReadinessDocument({ r }: { r: ReadinessReport }) {
   const sm = r.summary;
   return <article className={s.paper} aria-label="Readiness review document">
-    {r.draft && <p className={s.docDraft}>DRAFT — not reviewed.{r.ai ? " Narrative drafted with AI assistance from the audit record." : ""} Check every statement against the evidence before issue.</p>}
+    {r.draft && <p className={s.docDraft}>DRAFT — not reviewed.{r.ai ? " Narrative drafted with AI assistance from the assessment record." : ""} Check every statement against the evidence before issue.</p>}
     <h1>{r.title}</h1>
     <Pairs rows={r.cover} />
 

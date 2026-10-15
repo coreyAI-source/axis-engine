@@ -18,7 +18,7 @@ export function codes<T>(r: Result<T>): string[] {
 }
 
 // Fictional people. Unauthenticated = today's named-field behaviour.
-export const TARREN: Actor = { name: "DEMO Tarren (auditor)", authenticated: false };
+export const AUDITOR: Actor = { name: "DEMO Lead auditor", authenticated: false };
 export const SAM: Actor = { name: "DEMO Sam Owner", authenticated: false };
 export const ALEX: Actor = { name: "DEMO Alex Verifier", authenticated: false };
 

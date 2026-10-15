@@ -34,10 +34,9 @@ npm run setup:engine
 npm run typecheck
 ```
 
-Expected: the Node test runner reports zero failures. The demo runs complete ISO, offshore and hospitality audit cycles and writes:
+Expected: the Node test runner reports zero failures. The demo runs complete ISO and hospitality self-assessment cycles and writes:
 
 - `packages/engine/demo-output/iso-report.md`
-- `packages/engine/demo-output/offshore-report.md`
 - `packages/engine/demo-output/hospitality-report.md`
 
 Open these reports and check source references, evidence descriptions, corrective action owners/deadlines and verification. The hospitality example must remain non-favourable despite action closure because it records a major finding at audit time. Demo attachments are fictional references, not actual PDFs.

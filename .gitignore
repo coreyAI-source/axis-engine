@@ -26,6 +26,10 @@ build/
 .next/
 out/
 dist/
+*.tsbuildinfo
+
+# Vercel local project link
+.vercel/
 
 # Testing
 .coverage

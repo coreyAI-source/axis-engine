@@ -7,19 +7,19 @@ import {
   actionFlags, scoreHospitality, reportReadiness, completeAudit, DEFAULT_CONFIG,
   type Requirement, type Audit, type Evidence, type Finding,
 } from "../src/index.ts";
-import { ctx, must, codes, TARREN, SAM, ALEX, T0 } from "./helpers.ts";
+import { ctx, must, codes, AUDITOR, SAM, ALEX, T0 } from "./helpers.ts";
 import { addDays } from "../src/util.ts";
 
-const SRC = { documentId: "doc-1", documentTitle: "DEMO Environment Plan", revision: "B", section: "4.2" };
+const SRC = { documentId: "doc-1", documentTitle: "DEMO Policy Document", revision: "B", section: "4.2" };
 
 function approvedReq(extra: Partial<Parameters<typeof createRequirement>[0]> = {}): Requirement {
-  const c = ctx(TARREN, T0);
-  const r = must(createRequirement({ module: "offshore", text: "DEMO: Maintain a chemical register.", source: SRC, ...extra }, c));
+  const c = ctx(AUDITOR, T0);
+  const r = must(createRequirement({ module: "hospitality", text: "DEMO: Maintain an equipment maintenance log.", source: SRC, ...extra }, c));
   return must(reviewRequirement(r, "approved", "Checked against source", r.version, ctx(ALEX, T0)));
 }
 
-function setup(module: "offshore" | "hospitality" = "offshore", reqExtra = {}) {
-  const c = ctx(TARREN, T0);
+function setup(module: "hospitality" = "hospitality", reqExtra = {}) {
+  const c = ctx(AUDITOR, T0);
   const req = approvedReq({ module, ...reqExtra });
   let audit = must(createAudit({ module, title: "DEMO audit", siteName: "DEMO Site", startDate: T0 }, c));
   audit = must(addCriteria(audit, [req], audit.version, c));
@@ -38,26 +38,26 @@ function toMajorFinding() {
 
 describe("requirements", () => {
   test("all requirements start as draft, including AI extraction", () => {
-    const r = must(createRequirement({ module: "offshore", text: "x", source: SRC, origin: "ai_extraction" }, ctx(TARREN, T0)));
+    const r = must(createRequirement({ module: "hospitality", text: "x", source: SRC, origin: "ai_extraction" }, ctx(AUDITOR, T0)));
     assert.equal(r.reviewStatus, "draft");
   });
   test("source document and revision are mandatory", () => {
-    const r = createRequirement({ module: "offshore", text: "x", source: { ...SRC, revision: "" } }, ctx(TARREN, T0));
+    const r = createRequirement({ module: "hospitality", text: "x", source: { ...SRC, revision: "" } }, ctx(AUDITOR, T0));
     assert.deepEqual(codes(r), ["SOURCE_REVISION_REQUIRED"]);
   });
   test("draft requirements cannot enter an audit", () => {
-    const c = ctx(TARREN, T0);
-    const r = must(createRequirement({ module: "offshore", text: "x", source: SRC }, c));
-    const audit = must(createAudit({ module: "offshore", title: "t", siteName: "s", startDate: T0 }, c));
+    const c = ctx(AUDITOR, T0);
+    const r = must(createRequirement({ module: "hospitality", text: "x", source: SRC }, c));
+    const audit = must(createAudit({ module: "hospitality", title: "t", siteName: "s", startDate: T0 }, c));
     assert.deepEqual(codes(addCriteria(audit, [r], 1, c)), ["REQUIREMENT_NOT_APPROVED"]);
   });
   test("revising an approved requirement sends it back to draft", () => {
     const r = approvedReq();
-    const r2 = must(reviseRequirement(r, { text: "changed" }, "Rev C issued", r.version, ctx(TARREN, T0)));
+    const r2 = must(reviseRequirement(r, { text: "changed" }, "Rev C issued", r.version, ctx(AUDITOR, T0)));
     assert.equal(r2.reviewStatus, "draft");
   });
   test("ISO requirements and audits need a discipline; integrated audits accept several", () => {
-    const c = ctx(TARREN, T0);
+    const c = ctx(AUDITOR, T0);
     assert.deepEqual(codes(createAudit({ module: "iso", title: "t", siteName: "s", startDate: T0 }, c)), ["DISCIPLINE_REQUIRED"]);
     assert.ok(createAudit({ module: "iso", title: "t", siteName: "s", startDate: T0, disciplines: ["environment", "quality", "ohs"] }, c).ok);
   });

@@ -1,56 +1,67 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono } from "next/font/google";
+import { JetBrains_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
 
+const sans = Montserrat({ subsets: ["latin"], variable: "--font-sans", display: "swap", weight: ["400", "500", "600", "700"] });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "AXIS — Compliance Engine",
-  description: "Integrated compliance: ISO 9001 / 14001 / 45001 and GSTC hotel sustainability audits",
+  title: "AXIS Auditing — Compliance Engine",
+  description: "Environmental science | risk | assurance: ISO 9001 / 14001 / 45001 and GSTC hotel sustainability audits",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={mono.variable}>
+    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
       <head>
         <style>{`
           :root {
             color-scheme: dark;
-            --bg: #06080d;
-            --surface: rgba(255,255,255,0.032);
-            --surface-2: rgba(255,255,255,0.055);
-            --surface-solid: #0e121b;
-            --hover: rgba(255,255,255,0.045);
-            --border: rgba(255,255,255,0.08);
-            --border-soft: rgba(255,255,255,0.05);
-            --border-strong: rgba(255,255,255,0.15);
-            --text: #eef1f8;
-            --text-2: #c4cad8;
-            --text-3: #8e96a8;
-            --muted: #6c7489;
-            --faint: #454c5e;
-            --accent: #7d9bff;
-            --accent-2: #5fe3cf;
-            --accent-soft: rgba(125,155,255,0.12);
-            --accent-glow: rgba(125,155,255,0.38);
-            --green: #4ade9c;  --green-soft: rgba(74,222,156,0.11);  --green-line: rgba(74,222,156,0.28);
-            --amber: #fcc545;  --amber-soft: rgba(252,197,69,0.11);  --amber-line: rgba(252,197,69,0.28);
+            /* AXIS brand palette: Deep Ocean #004165, Ocean Blue #2B7EA1, Coastal Blue #6EB6DA,
+               Native Green #4F7F46, Sage Green #8BAA6E, Earth Brown #A4643E, Sand #D9C7AB, Stone #F4F2EC */
+            --brand-deep-ocean: #004165;
+            --brand-ocean: #2B7EA1;
+            --brand-coastal: #6EB6DA;
+            --brand-native: #4F7F46;
+            --brand-sage: #8BAA6E;
+            --brand-earth: #A4643E;
+            --brand-sand: #D9C7AB;
+            --brand-stone: #F4F2EC;
+            --bg: #03141f;
+            --surface: rgba(244,242,236,0.03);
+            --surface-2: rgba(244,242,236,0.055);
+            --surface-solid: #0a2232;
+            --hover: rgba(244,242,236,0.045);
+            --border: rgba(244,242,236,0.09);
+            --border-soft: rgba(244,242,236,0.055);
+            --border-strong: rgba(244,242,236,0.17);
+            --text: #F4F2EC;
+            --text-2: #D3DEE6;
+            --text-3: #93AAB8;
+            --muted: #6E8795;
+            --faint: #43606e;
+            --accent: #6EB6DA;
+            --accent-2: #8BAA6E;
+            --accent-soft: rgba(110,182,218,0.12);
+            --accent-glow: rgba(110,182,218,0.36);
+            --green: #8BAA6E;  --green-soft: rgba(139,170,110,0.13);  --green-line: rgba(139,170,110,0.3);
+            --amber: #E0B77C;  --amber-soft: rgba(224,183,124,0.12);  --amber-line: rgba(224,183,124,0.3);
             --red: #fb7c7c;    --red-soft: rgba(251,124,124,0.11);   --red-line: rgba(251,124,124,0.3);
-            --blue: #6fb1ff;   --violet: #b29bff;  --orange: #ff9f5a;  --slate: #9aa6bb;
+            --blue: #6EB6DA;   --violet: #B9C7D6; --orange: #C8875A; --slate: #9AAFBD;
             --radius: 14px;
             --rail: 68px;
             --rail-open: 236px;
-            --shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 12px 32px -14px rgba(0,0,0,0.7);
+            --shadow: 0 1px 0 rgba(244,242,236,0.04) inset, 0 12px 32px -14px rgba(0,0,0,0.7);
           }
           *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
           html { font-size: 16px; }
           body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+            font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
             color: var(--text);
             background:
-              radial-gradient(1100px 620px at 12% -12%, rgba(125,155,255,0.11), transparent 62%),
-              radial-gradient(900px 520px at 105% 6%, rgba(95,227,207,0.07), transparent 60%),
-              radial-gradient(800px 600px at 50% 120%, rgba(178,155,255,0.05), transparent 60%),
+              radial-gradient(1100px 620px at 12% -12%, rgba(43,126,161,0.16), transparent 62%),
+              radial-gradient(900px 520px at 105% 6%, rgba(139,170,110,0.06), transparent 60%),
+              radial-gradient(800px 600px at 50% 120%, rgba(110,182,218,0.05), transparent 60%),
               var(--bg);
             background-attachment: fixed;
             min-height: 100vh;
@@ -61,7 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }
           a { text-decoration: none; color: inherit; }
           button, input, textarea, select { font-family: inherit; }
-          ::selection { background: rgba(125,155,255,0.35); color: #fff; }
+          ::selection { background: rgba(110,182,218,0.35); color: #fff; }
           ::-webkit-scrollbar { width: 10px; height: 10px; }
           ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
           ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); background-clip: padding-box; border: 2px solid transparent; }
@@ -83,18 +94,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }
           .sidebar:hover, .sidebar:focus-within {
             width: var(--rail-open);
-            box-shadow: 24px 0 60px -20px rgba(0,0,0,0.85), 1px 0 0 rgba(125,155,255,0.12);
+            box-shadow: 24px 0 60px -20px rgba(0,0,0,0.85), 1px 0 0 rgba(110,182,218,0.12);
             transition-delay: 60ms;
           }
           .sidebar-logo { display: flex; align-items: center; height: 72px; padding: 0 10px; border-bottom: 1px solid var(--border-soft); white-space: nowrap; }
           .sidebar-icon-wrap { width: 48px; display: grid; place-items: center; flex-shrink: 0; }
-          .sidebar-icon {
-            width: 36px; height: 36px; border-radius: 11px;
-            background: linear-gradient(140deg, #9db3ff 0%, #6a7dff 55%, #5fe3cf 130%);
-            display: grid; place-items: center;
-            box-shadow: 0 0 0 1px rgba(255,255,255,0.12) inset, 0 6px 22px -4px var(--accent-glow);
+          /* Approved logo artwork ships on white; it sits on a Stone tile so the artwork is never altered */
+          .brand-tile {
+            width: 38px; height: 38px; border-radius: 11px; background: var(--brand-stone);
+            display: grid; place-items: center; overflow: hidden; flex-shrink: 0;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.12) inset, 0 6px 22px -6px var(--accent-glow);
           }
-          .sidebar-brand { font-size: 15px; font-weight: 700; letter-spacing: 0.04em; color: var(--text); }
+          .brand-tile img { width: 34px; height: 34px; object-fit: contain; }
+          .brand-tile-wide { width: auto; height: 56px; padding: 6px 14px; border-radius: 12px; }
+          .brand-tile-wide img { width: auto; height: 44px; }
+          .sidebar-brand { font-size: 15px; font-weight: 700; letter-spacing: 0.06em; color: var(--text); }
           .sidebar-tagline { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-top: 1px; }
           .sidebar-nav { flex: 1; padding: 14px 10px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; overflow-x: hidden; }
           .sidebar-section-label {
@@ -112,8 +126,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           .nav-icon { width: 48px; display: grid; place-items: center; flex-shrink: 0; }
           .nav-item svg { transition: color 140ms, filter 140ms; }
           .nav-item:hover { color: var(--text); background: var(--hover); }
-          .nav-item.active { color: var(--text); background: linear-gradient(90deg, rgba(125,155,255,0.16), rgba(125,155,255,0.04)); box-shadow: 0 0 0 1px rgba(125,155,255,0.18) inset; }
-          .nav-item.active svg { color: var(--accent); filter: drop-shadow(0 0 8px rgba(125,155,255,0.6)); }
+          .nav-item.active { color: var(--text); background: linear-gradient(90deg, rgba(110,182,218,0.16), rgba(110,182,218,0.04)); box-shadow: 0 0 0 1px rgba(110,182,218,0.18) inset; }
+          .nav-item.active svg { color: var(--accent); filter: drop-shadow(0 0 8px rgba(110,182,218,0.6)); }
           .nav-item.active::before { content: ""; position: absolute; left: -10px; top: 11px; bottom: 11px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
           .nav-label, .sidebar-brand-text, .sidebar-section-label { opacity: 0; transform: translateX(-4px); transition: opacity 140ms, transform 160ms; }
           .sidebar:hover .nav-label, .sidebar:focus-within .nav-label,
@@ -129,7 +143,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           /* Headings */
           .page-heading {
             font-size: 28px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.15;
-            background: linear-gradient(180deg, #ffffff 30%, #b9c3dc 100%);
+            background: linear-gradient(180deg, #ffffff 30%, #B9D6E4 100%);
             -webkit-background-clip: text; background-clip: text; color: transparent;
           }
           .page-subheading { font-size: 14px; color: var(--text-3); margin-top: 6px; }
@@ -180,7 +194,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           .btn:active { transform: translateY(1px); }
           .btn-primary, .btn-dark {
             color: #fff;
-            background: linear-gradient(135deg, #8ea8ff, #6576ff);
+            background: linear-gradient(135deg, #6EB6DA, #2B7EA1);
             box-shadow: 0 1px 0 rgba(255,255,255,0.25) inset, 0 8px 22px -10px var(--accent-glow);
           }
           .btn-primary:hover, .btn-dark:hover { box-shadow: 0 1px 0 rgba(255,255,255,0.25) inset, 0 10px 28px -8px var(--accent-glow); filter: brightness(1.06); }
@@ -195,7 +209,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             transition: border-color 150ms, box-shadow 150ms, background 150ms;
           }
           .input::placeholder { color: var(--muted); }
-          .input:focus { border-color: rgba(125,155,255,0.6); box-shadow: 0 0 0 4px rgba(125,155,255,0.12); background: rgba(255,255,255,0.05); }
+          .input:focus { border-color: rgba(110,182,218,0.6); box-shadow: 0 0 0 4px rgba(110,182,218,0.12); background: rgba(255,255,255,0.05); }
 
           /* Table */
           .table { width: 100%; border-collapse: collapse; }
@@ -214,7 +228,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
           @keyframes spin { to { transform: rotate(360deg); } }
-          .spinner { border: 2.5px solid rgba(125,155,255,0.18); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+          .spinner { border: 2.5px solid rgba(110,182,218,0.18); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
           .spinner-white { border-color: rgba(255,255,255,0.3); border-top-color: #fff; }
           @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
           .page-content > * { animation: rise 320ms cubic-bezier(.2,.7,.2,1) both; }
@@ -233,35 +247,35 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           .login-left {
             position: relative; overflow: hidden;
             width: min(46%, 520px); flex-shrink: 0;
-            background: linear-gradient(160deg, rgba(20,24,38,0.9), rgba(8,10,16,0.95));
+            background: linear-gradient(180deg, rgba(3,20,31,0.55) 0%, rgba(3,20,31,0.94) 72%), url(/brand/axis-coastal-banner.jpg) center / cover no-repeat, var(--bg);
             border-right: 1px solid var(--border);
             display: flex; flex-direction: column; justify-content: space-between; padding: 44px;
           }
-          .login-left::before { content: ""; position: absolute; width: 520px; height: 520px; left: -160px; bottom: -200px; border-radius: 50%; background: radial-gradient(circle, rgba(125,155,255,0.22), transparent 65%); pointer-events: none; }
-          .login-left::after { content: ""; position: absolute; width: 380px; height: 380px; right: -140px; top: -120px; border-radius: 50%; background: radial-gradient(circle, rgba(95,227,207,0.14), transparent 65%); pointer-events: none; }
+          .login-left::before { content: ""; position: absolute; width: 520px; height: 520px; left: -160px; bottom: -200px; border-radius: 50%; background: radial-gradient(circle, rgba(110,182,218,0.22), transparent 65%); pointer-events: none; }
+          .login-left::after { content: ""; position: absolute; width: 380px; height: 380px; right: -140px; top: -120px; border-radius: 50%; background: radial-gradient(circle, rgba(139,170,110,0.14), transparent 65%); pointer-events: none; }
           .login-left > * { position: relative; z-index: 1; }
           .login-right { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
           .login-form-box {
             width: 100%; max-width: 380px; padding: 32px;
             background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-            border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow), 0 30px 80px -40px rgba(125,155,255,0.35);
+            border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow), 0 30px 80px -40px rgba(110,182,218,0.35);
           }
           .login-label { display: block; font-size: 12.5px; font-weight: 500; color: var(--text-2); margin-bottom: 7px; }
           .login-input {
             width: 100%; padding: 11px 14px; background: rgba(255,255,255,0.04); border: 1px solid var(--border);
             border-radius: 10px; font-size: 14px; color: var(--text); outline: none; transition: border-color 150ms, box-shadow 150ms;
           }
-          .login-input:focus { border-color: rgba(125,155,255,0.65); box-shadow: 0 0 0 4px rgba(125,155,255,0.12); }
+          .login-input:focus { border-color: rgba(110,182,218,0.65); box-shadow: 0 0 0 4px rgba(110,182,218,0.12); }
           .login-btn {
             width: 100%; padding: 12px; border-radius: 10px; border: none; cursor: pointer;
             font-size: 14px; font-weight: 600; color: #fff;
-            background: linear-gradient(135deg, #8ea8ff, #6576ff);
+            background: linear-gradient(135deg, #6EB6DA, #2B7EA1);
             box-shadow: 0 1px 0 rgba(255,255,255,0.25) inset, 0 10px 30px -10px var(--accent-glow);
             display: flex; align-items: center; justify-content: center; gap: 8px; transition: filter 150ms;
           }
           .login-btn:hover { filter: brightness(1.08); }
           .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-          .gradient-text { background: linear-gradient(100deg, #ffffff, #b8c7ff 45%, #7ff0de); -webkit-background-clip: text; background-clip: text; color: transparent; }
+          .gradient-text { background: linear-gradient(100deg, #ffffff, #B9D6E4 45%, #A9D9EC); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
           /* Narrow screens: icon rail becomes a bottom bar */
           @media (max-width: 640px) {

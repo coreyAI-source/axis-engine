@@ -12,7 +12,7 @@ import {
   completeAudit, buildReport, renderReportMarkdown, DEFAULT_CONFIG,
   type AssessmentStatus, type Finding, type ModuleKind, type IsoDiscipline, type Assessment, type Evidence, type CorrectiveAction,
 } from "../src/index.ts";
-import { ctx, must, TARREN, SAM, ALEX, T0 } from "./helpers.ts";
+import { ctx, must, AUDITOR, SAM, ALEX, T0 } from "./helpers.ts";
 import { addDays } from "../src/util.ts";
 
 interface Crit {
@@ -27,7 +27,7 @@ interface Crit {
 
 function runCycle(module: ModuleKind, title: string, site: string, doc: { id: string; title: string; revision: string }, crits: Crit[], disciplines?: IsoDiscipline[]) {
   const day = (d: number) => addDays(T0, d);
-  const c = ctx(TARREN, T0);
+  const c = ctx(AUDITOR, T0);
 
   // 1. Source -> requirement (draft) -> competent-person review
   const reqs = crits.map((k) => {
@@ -76,9 +76,9 @@ function runCycle(module: ModuleKind, title: string, site: string, doc: { id: st
   });
 
   // 5. Reporting and completion
-  audit = must(setAuditStatus(audit, "reporting", audit.version, ctx(TARREN, day(7))));
+  audit = must(setAuditStatus(audit, "reporting", audit.version, ctx(AUDITOR, day(7))));
   const bundle = { audit, requirements: reqs, assessments, evidence, findings, actions };
-  audit = must(completeAudit(bundle, audit.version, ctx(TARREN, day(7))));
+  audit = must(completeAudit(bundle, audit.version, ctx(AUDITOR, day(7))));
   const report = buildReport({ ...bundle, audit }, day(7), DEFAULT_CONFIG);
   const md = renderReportMarkdown(report);
   mkdirSync("demo-output", { recursive: true });
@@ -98,20 +98,6 @@ test("DEMO ISO integrated audit: full cycle", () => {
   assert.equal(r.findings.length, 1);
   assert.ok(r.findings.every((f) => f.status === "closed"));
   assert.match(r.md, /does not claim complete coverage/);
-});
-
-test("DEMO offshore EP audit: full cycle", () => {
-  const r = runCycle("offshore", "DEMO Offshore EP Compliance Audit (fictional)", "DEMO Platform Alpha (fictional)",
-    { id: "demo-ep", title: "DEMO Environment Plan (fictional)", revision: "B" },
-    [
-      { text: "DEMO: Chemical register maintained for all chemicals used", ref: { section: "DEMO-6.4", page: "58" }, status: "major", rationale: "Three chemicals in use absent from register", category: "chemical management" },
-      { text: "DEMO: Produced water discharge monitored per measurement criteria", ref: { section: "DEMO-7.1" }, status: "conforming", rationale: "Monitoring records complete for the period", category: "discharges" },
-      { text: "DEMO: Incidents reported within internal timeframe", ref: { section: "DEMO-9.2" }, status: "not_applicable", rationale: "No incidents occurred during the audit period", category: "incidents" },
-    ]);
-  assert.equal(r.audit.status, "complete");
-  assert.equal(r.findings[0]!.severity, "major");
-  assert.match(r.md, /\(rev\. B\), section DEMO-6\.4, p\. 58/);
-  assert.match(r.md, /Not a statutory deadline/);
 });
 
 test("DEMO hospitality audit: full cycle; major finding caps rating", () => {

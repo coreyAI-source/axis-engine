@@ -6,7 +6,7 @@
  * and returns a Result. Persistence (D1/R2) and UI live outside the engine.
  */
 
-export type ModuleKind = "iso" | "offshore" | "hospitality";
+export type ModuleKind = "iso" | "hospitality";
 export type IsoDiscipline = "environment" | "quality" | "ohs";
 
 /** Who performed an action. `authenticated` is true only when the platform verified the identity. */
@@ -67,7 +67,7 @@ export type RequirementOrigin = "manual" | "ai_extraction" | "imported";
 export interface Requirement extends Versioned {
   module: ModuleKind;
   disciplines?: IsoDiscipline[]; // ISO module only
-  category?: string; // e.g. hospitality "water", offshore "discharges"
+  category?: string; // e.g. hospitality "water"
   text: string;
   title?: string;
   /** Published performance indicators, in source order. */
@@ -76,8 +76,6 @@ export interface Requirement extends Versioned {
   guidance?: string[];
   auditPrompt?: string;
   controls?: string[];
-  performanceStandard?: string; // offshore
-  measurementCriteria?: string; // offshore
   source: SourceReference;
   origin: RequirementOrigin;
   createdBy: Actor;
@@ -85,7 +83,7 @@ export interface Requirement extends Versioned {
   reviewedBy?: Actor;
   reviewedAt?: string;
   reviewNote?: string;
-  /** Hospitality: a gap here blocks a favourable rating. Definition pending Tarren. */
+  /** Hospitality: a gap here blocks a favourable rating. Definition pending lead auditor confirmation. */
   critical?: boolean;
   /** Hospitality scoring weight; defaults to 1. Provisional. */
   weight?: number;
@@ -275,7 +273,7 @@ export type Result<T> =
   | { ok: false; violations: Violation[] };
 
 export interface EngineConfig {
-  /** Internal default deadlines in days. NOT statutory. Pending Tarren's confirmation. */
+  /** Internal default deadlines in days. NOT statutory. Pending lead auditor confirmation. */
   deadlineDays: Record<FindingSeverity, number>;
   inactivityDays: number;
   majorUnstartedHours: number;
@@ -291,7 +289,7 @@ export interface HospitalityConfig {
   minCoverage: number;
   /** Score bands, highest first. Provisional. */
   bands: { minScore: number; label: string; favourable: boolean }[];
-  /** Assessment statuses on a critical requirement that count as a critical gap. Pending Tarren. */
+  /** Assessment statuses on a critical requirement that count as a critical gap. Pending lead auditor confirmation. */
   criticalGapStatuses: AssessmentStatus[];
 }
 

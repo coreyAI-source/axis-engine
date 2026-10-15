@@ -2,7 +2,7 @@
 
 Reviewed: **29 September 2026**. Status: **GSTC Hotel Standard v4.0 criteria imported; product decisions below still open**.
 
-New hotel audits now load all 40 criteria of the GSTC Hotel Standard v4.0 with their 205 performance indicators and Annex guidelines, extracted verbatim from the official PDF into `packages/engine/src/gstc-hotel-v4-data.ts` (criterion and indicator counts verified per criterion against the source). Each criterion cites its section, clause ID and PDF page. Tarren confirmed the standard may be used for this purpose. Audits created before the import keep their eight fictional pilot criteria. The "Original examples" section below is historical.
+New hotel audits now load all 40 criteria of the GSTC Hotel Standard v4.0 with their 205 performance indicators and Annex guidelines, extracted verbatim from the official PDF into `packages/engine/src/gstc-hotel-v4-data.ts` (criterion and indicator counts verified per criterion against the source). Each criterion cites its section, clause ID and PDF page. Commercial use is **not yet confirmed**: GSTC's written terms for building these criteria into paid software must be on file before any paid launch (see the commercial-terms gate in `packages/engine/src/gstc-hotel.ts`). If GSTC's terms are not workable, the first standard switches to ISO 14001, paraphrased rather than reproduced. Audits created before the import keep their eight fictional pilot criteria. The "Original examples" section below is historical.
 
 ## Source registry
 

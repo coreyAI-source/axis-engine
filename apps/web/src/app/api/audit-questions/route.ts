@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     )
     .join("\n");
 
-  const prompt = `You are an experienced ISO management systems auditor with a NOPSEMA-style approach — you test whether systems are implemented and effective, not just whether documentation exists.
+  const prompt = `You are an experienced ISO management systems auditor with a systems-effectiveness approach — you test whether systems are implemented and effective, not just whether documentation exists.
 
 Process being audited: ${process.name} (${process.code}) — Category: ${process.category}
 ${process.description ? `Description: ${process.description}` : ""}

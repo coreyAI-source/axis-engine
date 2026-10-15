@@ -1,6 +1,6 @@
 # ISO Clause Reference: Close Paraphrases & Audit Prompts
 
-Source: Tarren Reitsema (ex-NOPSEMA regulator). Authoritative domain input for AXIS audit prompt generation.
+Source: drafted by Axis; pending review by the qualified lead auditor. Input for AXIS audit prompt generation.
 
 Covers: ISO 9001:2015 · ISO 14001:2026 · ISO 45001:2018 + A1:2024
 

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ShieldCheck } from "lucide-react";
+import Image from "next/image";
+import { Check } from "lucide-react";
 import { auth } from "@/lib/api";
 
 export default function LoginPage() {
@@ -31,15 +32,9 @@ export default function LoginPage() {
     <div className="login-wrap">
       {/* Left panel */}
       <div className="login-left">
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div className="sidebar-icon" style={{ width: 40, height: 40, borderRadius: 12 }}>
-            <ShieldCheck size={20} color="#fff" strokeWidth={2.4} />
-          </div>
-          <div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text)", letterSpacing: "0.04em" }}>AXIS</div>
-            <div style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Compliance engine</div>
-          </div>
-        </div>
+        <span className="brand-tile brand-tile-wide" style={{ alignSelf: "flex-start" }}>
+          <Image src="/brand/axis-logo-horizontal.png" alt="AXIS Auditing — Environmental science | Risk | Assurance" width={721} height={261} priority />
+        </span>
 
         <div>
           <p className="gradient-text" style={{ fontSize: 30, fontWeight: 700, lineHeight: 1.2, letterSpacing: "-0.03em", marginBottom: 12 }}>
@@ -56,7 +51,7 @@ export default function LoginPage() {
               { label: "Independent verification", desc: "Corrective actions close only when a different person verifies them." },
             ].map((f) => (
               <div key={f.label} style={{ display: "flex", gap: 12 }}>
-                <div style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0, marginTop: 1, background: "var(--accent-soft)", border: "1px solid rgba(125,155,255,0.3)", display: "grid", placeItems: "center" }}>
+                <div style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0, marginTop: 1, background: "var(--accent-soft)", border: "1px solid rgba(110,182,218,0.3)", display: "grid", placeItems: "center" }}>
                   <Check size={12} color="var(--accent)" strokeWidth={3} />
                 </div>
                 <div>
@@ -67,6 +62,7 @@ export default function LoginPage() {
             ))}
           </div>
 
+          <p style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--brand-sand)", marginBottom: 18 }}>Environmental science &nbsp;|&nbsp; Risk &nbsp;|&nbsp; Assurance</p>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {["GSTC Hotel v4.0", "ISO 9001:2015", "ISO 14001", "ISO 45001:2018"].map((s) => (
               <span key={s} className="badge badge-slate">{s}</span>

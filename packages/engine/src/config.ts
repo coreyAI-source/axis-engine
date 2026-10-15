@@ -2,7 +2,7 @@ import type { EngineConfig } from "./types.ts";
 
 /**
  * Internal defaults. None of these values is a statutory or standard-mandated figure.
- * Items marked PENDING need Tarren's confirmation before production use.
+ * Items marked PENDING need the qualified lead auditor's confirmation before production use.
  */
 export const DEFAULT_CONFIG: EngineConfig = {
   deadlineDays: { major: 14, minor: 30 }, // PENDING: severity mapping to confirm

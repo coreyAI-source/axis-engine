@@ -82,7 +82,7 @@ export function reviewRequirement(
 /** Editing text or source sends an approved requirement back to draft. Old assessments keep their snapshot. */
 export function reviseRequirement(
   req: Requirement,
-  changes: Partial<Pick<Requirement, "text" | "source" | "auditPrompt" | "controls" | "category" | "critical" | "weight" | "performanceStandard" | "measurementCriteria" | "disciplines">>,
+  changes: Partial<Pick<Requirement, "text" | "source" | "auditPrompt" | "controls" | "category" | "critical" | "weight" | "disciplines">>,
   reason: string,
   expectedVersion: number,
   ctx: EngineContext,

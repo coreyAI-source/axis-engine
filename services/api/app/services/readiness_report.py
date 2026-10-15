@@ -451,7 +451,7 @@ def build_readiness(bundle, saved_profile=None, draft=None, audit_version=None):
                 + (f", with {profile['staff_present']}." if profile.get("staff_present") else "."),
                 f"You asked us to identify what {hotel} needs to address to achieve GSTC certification. This report compares what we saw on the day with "
                 f"{'all ' if len(criteria) == 40 else ''}{len(criteria)} criteria of the {profile.get('standard_used') or 'GSTC Hotel Standard'}, lists every gap a certification auditor would be likely to raise, "
-                "and sets out what to fix, in what order. It is a readiness review, not a certification audit, and it does not award a score or a pass.",
+                "and sets out what to fix, in what order. It is a readiness review, not a certification audit, and it gives a readiness score, not a pass or a certification decision.",
                 narrative["letter_summary"] or PLACEHOLDER,
                 "The certification action plan in section 7 lists what to fix first, and section 8 explains the route to certification. "
                 "We recommend a follow-up review before you book an audit with a GSTC-accredited certification body.",

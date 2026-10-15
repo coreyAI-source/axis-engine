@@ -100,7 +100,7 @@ export interface AuditReport {
   disclaimers: string[];
 }
 
-const moduleName = { iso: "General ISO audit", offshore: "Offshore environmental audit", hospitality: "Hospitality sustainability audit" } as const;
+const moduleName = { iso: "General ISO self-assessment", hospitality: "Hospitality sustainability self-assessment" } as const;
 
 function deadlineNote(a: CorrectiveAction): string {
   const b = a.deadlineBasis;
@@ -167,7 +167,7 @@ export function buildReport(b: AuditBundle, now: string, config: EngineConfig): 
   });
 
   const disclaimers = [
-    `This audit assessed ${inScope.length} selected requirement(s). It does not claim complete coverage of any standard, plan or legal obligation.`,
+    `This self-assessment covered ${inScope.length} selected requirement(s). It does not claim complete coverage of any standard, plan or legal obligation.`,
     "Default corrective action deadlines are internal defaults, not statutory deadlines, unless an external source is cited.",
   ];
   if (b.actions.some((a) => a.auditId === b.audit.id && a.verifications.some((x) => x.separation === "declared_only")))

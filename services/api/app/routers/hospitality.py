@@ -87,34 +87,64 @@ def summary(row):
     return {"id": str(row.id), "title": row.title, "site_name": row.site_name, "status": row.status, "version": row.version, "updated_at": row.updated_at.isoformat()}
 
 
-async def detail(row, user, warnings=None):
+async def audit_bundle(row, db):
+    """Engine-shaped bundle for either audit type. Legacy GSTC audits are adapted from their prompts."""
+    from ..models.audit import Audit
+
+    if not isinstance(row, Audit):
+        return row.bundle
+
+    from sqlalchemy import select as sa_select
+    # Fetch prompts for this audit
+    prompts_result = await db.execute(sa_select(AuditPrompt).where(AuditPrompt.audit_id == row.id).order_by(AuditPrompt.sequence_no))
+    prompts = prompts_result.scalars().all()
+
+    # Convert prompts to requirements/assessments format
+    requirements = []
+    assessments = []
+    for prompt in prompts:
+        req_id = str(prompt.id)
+        requirements.append({
+            "id": req_id,
+            "text": prompt.prompt_text or "",
+            "title": prompt.prompt_type or "Assessment Criterion",
+            "source": {"clause": str(prompt.clause_id) if prompt.clause_id else ""},
+        })
+        assessments.append({
+            "requirementId": req_id,
+            "status": "conform" if prompt.response_status == "C" else "not_conform" if prompt.response_status == "NC" else "observation" if prompt.response_status == "OBS" else "unassessed",
+            "rationale": prompt.basis_for_conclusion or "",
+            "evidenceIds": [],
+        })
+    return {
+        "audit": {
+            "id": str(row.id),
+            "title": row.auditee_name,
+            "siteName": row.main_location,
+            "status": row.status,
+        },
+        "gstc_data": {
+            "country_code": row.country_code,
+            "risk_level": row.risk_level,
+            "duration_days": row.duration_days,
+            "guest_rooms": row.guest_room_count,
+            "staff_count": row.staff_count,
+        },
+        "requirements": requirements,
+        "assessments": assessments,
+        "evidence": [],
+        "findings": [],
+        "actions": [],
+        "config": {"minRationaleLength": 20},
+        "template": None,
+    }
+
+async def detail(row, user, db, warnings=None):
     from ..models.audit import Audit
 
     # Handle GSTC Audit
     if isinstance(row, Audit):
-        from sqlalchemy import select as sa_select
-        # Fetch prompts for this audit
-        prompts_result = await db.execute(sa_select(AuditPrompt).where(AuditPrompt.audit_id == row.id).order_by(AuditPrompt.prompt_order))
-        prompts = prompts_result.scalars().all()
-
-        # Convert prompts to requirements/assessments format
-        requirements = []
-        assessments = []
-        for prompt in prompts:
-            req_id = str(prompt.id)
-            requirements.append({
-                "id": req_id,
-                "text": prompt.question or prompt.requirement_text or "",
-                "title": prompt.section or "Assessment Criterion",
-                "source": {"clause": prompt.criterion_code or ""},
-            })
-            assessments.append({
-                "requirementId": req_id,
-                "status": "conform" if prompt.response_status == "C" else "not_conform" if prompt.response_status == "NC" else "observation" if prompt.response_status == "OBS" else "unassessed",
-                "rationale": prompt.basis_for_conclusion or "",
-                "evidenceIds": [],
-            })
-
+        bundle = await audit_bundle(row, db)
         return {
             "id": str(row.id),
             "title": row.auditee_name,
@@ -123,28 +153,7 @@ async def detail(row, user, warnings=None):
             "version": 1,
             "updated_at": (row.created_at or row.start_date).isoformat(),
             "type": "GSTC",
-            "bundle": {
-                "audit": {
-                    "id": str(row.id),
-                    "title": row.auditee_name,
-                    "siteName": row.main_location,
-                    "status": row.status,
-                },
-                "gstc_data": {
-                    "country_code": row.country_code,
-                    "risk_level": row.risk_level,
-                    "duration_days": row.duration_days,
-                    "guest_rooms": row.guest_room_count,
-                    "staff_count": row.staff_count,
-                },
-                "requirements": requirements,
-                "assessments": assessments,
-                "evidence": [],
-                "findings": [],
-                "actions": [],
-                "config": {"minRationaleLength": 20},
-                "template": None,
-            },
+            "bundle": bundle,
             "report": {
                 "type": "GSTC Audit",
                 "property": row.auditee_name,
@@ -213,12 +222,12 @@ async def create_audit(payload: AuditCreate, db: AsyncSession = Depends(get_db),
                            status=bundle["audit"]["status"], version=1, bundle=bundle)
     db.add(row)
     await db.flush()
-    return await detail(row, user, result.get("warnings"))
+    return await detail(row, user, db, result.get("warnings"))
 
 
 @router.get("/audits/{audit_id}")
 async def read_audit(audit_id: uuid.UUID, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    return await detail(await get_audit(audit_id, db, user), user)
+    return await detail(await get_audit(audit_id, db, user), user, db)
 
 
 @router.post("/audits/{audit_id}/commands")
@@ -246,7 +255,7 @@ async def command(audit_id: uuid.UUID, payload: Command, db: AsyncSession = Depe
         data["owner"] = actor_for(owner)
     result = await run_engine(payload.operation, user, row.bundle, data)
     await save_bundle(row, payload.expected_version, result["value"], db, user)
-    return await detail(row, user, result.get("warnings"))
+    return await detail(row, user, db, result.get("warnings"))
 
 
 @router.post("/audits/{audit_id}/files", status_code=201)
@@ -294,7 +303,7 @@ async def upload_file(audit_id: uuid.UUID, file: UploadFile = File(...), expecte
     db.add(HospitalityFile(id=file_id, audit_id=audit_id, evidence_id=evidence["id"], file_name=name,
                            content_type=mime, sha256=digest, content=content))
     await db.flush()
-    return await detail(row, user, result.get("warnings"))
+    return await detail(row, user, db, result.get("warnings"))
 
 
 @router.post("/audits/{audit_id}/evidence/draft-metadata")
@@ -363,12 +372,17 @@ async def suggest_assessment(audit_id: uuid.UUID, payload: SuggestRequest, db: A
     })
     warnings.extend(result.get("warnings") or [])
     await save_bundle(row, payload.expected_version, result["value"], db, user)
-    return await detail(row, user, warnings)
+    return await detail(row, user, db, warnings)
 
 
 @router.get("/audits/{audit_id}/report")
 async def get_report(audit_id: uuid.UUID, format: str = "json", db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
     row = await get_audit(audit_id, db, user)
+    if not hasattr(row, "bundle"):
+        # Legacy GSTC audits have no engine report; return the same summary the detail view shows.
+        if format != "json":
+            raise HTTPException(409, "Markdown reports are available for hospitality audits only.")
+        return (await detail(row, user, db))["report"]
     result = await run_engine("report", user, row.bundle)
     if format == "markdown":
         return Response(result["value"]["markdown"], media_type="text/markdown; charset=utf-8", headers={
@@ -377,6 +391,12 @@ async def get_report(audit_id: uuid.UUID, format: str = "json", db: AsyncSession
     if format != "json":
         raise HTTPException(422, "Report format must be json or markdown.")
     return result["value"]["report"]
+
+
+def require_hospitality(row):
+    # Legacy GSTC audits have no engine bundle, so readiness reports do not apply to them.
+    if not hasattr(row, "bundle"):
+        raise HTTPException(409, "Readiness reports are available for hospitality audits only.")
 
 
 def readiness_view(row):
@@ -389,12 +409,15 @@ def readiness_view(row):
 
 @router.get("/audits/{audit_id}/readiness")
 async def get_readiness(audit_id: uuid.UUID, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
-    return readiness_view(await get_audit(audit_id, db, user))
+    row = await get_audit(audit_id, db, user)
+    require_hospitality(row)
+    return readiness_view(row)
 
 
 @router.put("/audits/{audit_id}/readiness/profile")
 async def save_readiness_profile(audit_id: uuid.UUID, payload: ReadinessProfile, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
     row = await get_audit(audit_id, db, user)
+    require_hospitality(row)
     require_role(user, WRITERS)
     row.report_profile = {k: v for k, v in payload.model_dump().items() if v}
     await db.flush()
@@ -404,6 +427,7 @@ async def save_readiness_profile(audit_id: uuid.UUID, payload: ReadinessProfile,
 @router.post("/audits/{audit_id}/readiness/generate")
 async def generate_readiness(audit_id: uuid.UUID, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
     row = await get_audit(audit_id, db, user)
+    require_hospitality(row)
     require_role(user, WRITERS)
     profile = readiness.merge_profile(row.bundle, row.report_profile)
     narrative, model = await report_ai.draft_narrative(readiness.ai_facts(row.bundle, profile))
@@ -419,6 +443,7 @@ async def generate_readiness(audit_id: uuid.UUID, db: AsyncSession = Depends(get
 @router.get("/audits/{audit_id}/readiness/critique")
 async def critique_readiness(audit_id: uuid.UUID, include_ai: bool = False, db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
     row = await get_audit(audit_id, db, user)
+    require_hospitality(row)
     report = readiness.build_readiness(row.bundle, row.report_profile, row.report_draft, row.version)
     return await report_critique.critique(report, include_ai=include_ai and report_ai.configured())
 
@@ -426,6 +451,7 @@ async def critique_readiness(audit_id: uuid.UUID, include_ai: bool = False, db: 
 @router.get("/audits/{audit_id}/readiness/export")
 async def export_readiness(audit_id: uuid.UUID, format: str = "docx", db: AsyncSession = Depends(get_db), user=Depends(get_current_user)):
     row = await get_audit(audit_id, db, user)
+    require_hospitality(row)
     report = readiness.build_readiness(row.bundle, row.report_profile, row.report_draft, row.version)
     name = f"AXIS-readiness-review-{readiness.slug(report['hotel'])}"
     if format == "docx":

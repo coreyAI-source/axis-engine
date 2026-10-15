@@ -12,7 +12,7 @@ Source documents (axis-engine/ISO auditor/):
 - ISO-14001-2015-checklist-20240412.xlsx              (evidence guidance)
 - ISO-45001-2018-checklist-20240412.xlsx              (evidence guidance)
 
-Evidence guidance text derived from auditor checklists (Tarren Reitsema, ex-NOPSEMA).
+Evidence guidance text drafted by Axis; pending review by the qualified lead auditor.
 requires_documented_information = clause requires maintaining a policy/procedure/plan/register
 requires_retained_evidence = clause requires retaining records as proof of activities
 """

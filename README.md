@@ -27,7 +27,7 @@ New hotel audits start with all **40 criteria of the GSTC Hotel Standard v4.0** 
 
 ## Current status and ZIP additions
 
-The supplied `axis-engine.zip` is now included under [`packages/engine`](packages/engine). It adds ISO, offshore and hospitality audit rules: requirement review, evidence checks, assessment snapshots, findings, corrective actions, independent verification, monitoring flags, provisional hospitality scoring and Markdown reports. Its fictional demo audits run without a database or browser.
+The supplied `axis-engine.zip` is now included under [`packages/engine`](packages/engine). It adds ISO and hospitality rules: requirement review, evidence checks, assessment snapshots, findings, corrective actions, independent verification, monitoring flags, provisional hospitality scoring and Markdown reports. Its fictional demo audits run without a database or browser.
 
 The engine can run standalone and now powers the **hospitality web workflow**, through a server-side Node bridge called by FastAPI. The older ISO web/mobile workflows have not been migrated to it. The ZIP's D1/R2/Vinext sketch has not replaced this project's architecture.
 

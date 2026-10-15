@@ -125,7 +125,9 @@ async def draft_narrative(facts):
     try:
         narrative = openrouter.extract_json_object(result.content)
     except (ValueError, TypeError):
-        raise HTTPException(502, "The AI response was not valid report JSON. Try again, or choose a different OPENROUTER_MODEL.")
+        # The model often answers with a validation note instead of JSON; show its opening words so the reviewer can act on it.
+        reason = " ".join((result.content or "").split())[:300]
+        raise HTTPException(502, f"The AI did not return a readiness draft. It replied: {reason}")
     if _copied_example(narrative):
         raise HTTPException(502, "The AI copied the template's fictional example instead of this audit. Nothing was saved; try again.")
     return narrative, result.model

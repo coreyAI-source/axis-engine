@@ -28,6 +28,13 @@ const CATEGORY: Record<GstcCriterion["section"], string> = {
   D: "D · Environmental",
 };
 
+/**
+ * Commercial-use gate. The criteria text is GSTC's copyright. Keep this false until GSTC's
+ * written terms for paid software are on file; do not sell or launch the GSTC template before then.
+ * Internal build and testing are unaffected.
+ */
+export const GSTC_COMMERCIAL_TERMS_CONFIRMED = false;
+
 export const GSTC_HOTEL_TEMPLATE: HotelTemplate = {
   id: "gstc-hotel-v4",
   version: "v4.0 (December 30, 2025)",

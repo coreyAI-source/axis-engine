@@ -2,11 +2,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import * as engine from "../src/index.ts";
 import type { Assessment, AssessmentStatus, AuditBundle, Requirement } from "../src/index.ts";
-import { ctx, must, codes, TARREN, SAM, ALEX, T0 } from "./helpers.ts";
+import { ctx, must, codes, AUDITOR, SAM, ALEX, T0 } from "./helpers.ts";
 import { addDays } from "../src/util.ts";
 
 function setup(status: AssessmentStatus = "conforming") {
-  const c = ctx(TARREN, T0);
+  const c = ctx(AUDITOR, T0);
   let req = must(engine.createRequirement({
     module: "hospitality", text: "DEMO requirement", category: "water", weight: 1,
     source: { documentId: "demo", documentTitle: "DEMO source", revision: "A" },

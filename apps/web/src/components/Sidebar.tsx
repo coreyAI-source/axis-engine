@@ -1,8 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Activity, Hotel, LayoutDashboard, LogOut, ShieldCheck, Workflow } from "lucide-react";
+import { Activity, Hotel, LayoutDashboard, LogOut, Workflow } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
@@ -18,7 +19,7 @@ export default function Sidebar() {
   return (
     <aside className="sidebar" aria-label="Main navigation">
       <div className="sidebar-logo">
-        <div className="sidebar-icon-wrap"><div className="sidebar-icon"><ShieldCheck size={18} color="#fff" strokeWidth={2.4} /></div></div>
+        <div className="sidebar-icon-wrap"><span className="brand-tile"><Image src="/brand/axis-emblem.png" alt="AXIS Auditing" width={34} height={34} /></span></div>
         <div className="sidebar-brand-text">
           <div className="sidebar-brand">AXIS</div>
           <div className="sidebar-tagline">Compliance engine</div>

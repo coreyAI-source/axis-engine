@@ -129,11 +129,11 @@ def validate_extremely_low_risk_qualification(
     is_sensitive_area: bool,
 ) -> Tuple[bool, list[str]]:
     """
-    Check if hotel qualifies for extremely low risk per GSTC 8.5.12.9 (v5.0).
+    Check if hotel qualifies for extremely low risk per GSTC Accreditation Manual v3.0, clause 8.5.12.9.1.
 
     ALL criteria must be met:
-    - 20 rooms or fewer
-    - 5 staff or fewer (v5.0 change: was <15 in v3.0)
+    - fewer than 20 guest rooms
+    - fewer than 15 staff
     - No event/function/meeting spaces
     - Local ownership
     - Internet access
@@ -145,11 +145,11 @@ def validate_extremely_low_risk_qualification(
     """
     failures = []
 
-    if guest_room_count is None or guest_room_count > 20:
-        failures.append("Guest rooms > 20 (GSTC 8.5.12.9 requires <= 20)")
+    if guest_room_count is None or guest_room_count >= 20:
+        failures.append("Guest rooms >= 20 (GSTC 8.5.12.9.1a requires fewer than 20)")
 
-    if staff_count is None or staff_count > 5:
-        failures.append("Staff > 5 (GSTC 8.5.12.9 v5.0 requires <= 5)")
+    if staff_count is None or staff_count >= 15:
+        failures.append("Staff >= 15 (GSTC 8.5.12.9.1a requires fewer than 15)")
 
     if has_event_spaces or has_function_spaces or has_meeting_spaces:
         failures.append("Has event/function/meeting spaces (must have none)")
