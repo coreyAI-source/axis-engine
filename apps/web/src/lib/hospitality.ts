@@ -3,11 +3,15 @@ import { api } from "./api";
 
 export type AssessmentStatus = "unassessed" | "conforming" | "observation" | "minor" | "major" | "not_applicable";
 export interface Member { id: string; organisation_id?: string; name: string; email: string; role_code: string }
-export interface AuditSummary { id: string; title: string; site_name: string; status: string; version: number; updated_at: string }
+export interface AuditSummary { id: string; title: string; site_name: string; status: string; version: number; updated_at: string; framework?: string; framework_id?: string }
 export interface Actor { name: string; userId?: string; authenticated: boolean }
 export interface Source { documentId: string; documentTitle: string; revision: string; section?: string; clause?: string; page?: string }
 export interface Requirement { id: string; version: number; text: string; title?: string; indicators?: string[]; guidance?: string[]; category?: string; auditPrompt?: string; source: Source; reviewStatus: string; reviewNote?: string; critical?: boolean; weight?: number }
-export interface Template { id: string; version: string; title: string; fictional: boolean; disclaimer: string }
+export interface Template { id: string; version: string; title: string; fictional: boolean; disclaimer: string; kind?: "gstc" | "example" | "legacy" }
+export interface Framework { id: string; kind: "gstc" | "example"; title: string; version: string; label: string; fictional: boolean }
+export const EXAMPLE_FRAMEWORK_ID = "axis-example-hotel-checklist";
+export const isExampleFramework = (template?: { id?: string; kind?: string }) => template?.kind === "example" || template?.id === EXAMPLE_FRAMEWORK_ID;
+export interface ChecklistBlock { inScope: number; notApplicable: number; applicable: number; answered: number; unanswered: number; complete: number; missingEvidence: number; openFindings: number; openActions: number; progress: { numerator: number; denominator: number; percent: number | null }; gaps: string[] }
 export interface IndicatorInput { index: number; notes: string; evidenceIds: string[]; updatedAt?: string; updatedBy?: Actor }
 export interface AssessmentSuggestion { status: AssessmentStatus; rationale: string; model: string; generatedAt: string; generatedBy: Actor; basedOnVersion: number }
 export interface Assessment { id: string; version: number; requirementId: string; status: AssessmentStatus; rationale: string; evidenceIds: string[]; assessedAt?: string; assessedBy?: Actor; indicatorInputs?: IndicatorInput[]; suggestion?: AssessmentSuggestion }
@@ -19,6 +23,7 @@ export interface AuditReport {
   generatedAt: string; draft: boolean;
   audit: { title: string; siteName: string; scopeStatement?: string; status: string; leadAuditor: string; startDate: string; endDate?: string };
   counts: Record<AssessmentStatus, number>;
+  checklist?: ChecklistBlock;
   hospitality?: { score: number | null; coverage: number; rating: string; favourable: boolean; methodNote: string; blockers: string[]; categories: { category: string; score: number | null; assessed: number; applicable: number }[] };
   readiness: { ready: boolean; blockers: Violation[]; warnings: Violation[] };
   disclaimers: string[];
@@ -40,7 +45,8 @@ export const hospitality = {
   members: () => api.get<Member[]>("/hospitality/members"),
   addMember: (input: { first_name: string; last_name: string; email: string; password: string; role_code: string }) => api.post<Member>("/hospitality/members", input),
   list: () => api.get<AuditSummary[]>("/hospitality/audits"),
-  create: (input: { title: string; site_name: string; scope_statement: string }) => api.post<AuditDetail>("/hospitality/audits", input),
+  frameworks: () => api.get<Framework[]>("/hospitality/frameworks"),
+  create: (input: { title: string; site_name: string; scope_statement: string; framework_id?: string }) => api.post<AuditDetail>("/hospitality/audits", input),
   get: (id: string) => api.get<AuditDetail>(`/hospitality/audits/${encodeURIComponent(id)}`),
   command: (id: string, version: number, operation: string, input: object = {}) => api.post<AuditDetail>(`/hospitality/audits/${encodeURIComponent(id)}/commands`, { expected_version: version, operation, input }),
   suggestAssessment: (id: string, version: number, requirementId: string, indicatorInputs: { index: number; notes: string; evidenceIds: string[] }[] = []) => api.post<AuditDetail>(`/hospitality/audits/${encodeURIComponent(id)}/assessments/suggest`, { expected_version: version, requirementId, indicatorInputs }, { timeout: 120000 }),
@@ -118,6 +124,30 @@ export const httpStatus = (error: unknown) => axios.isAxiosError(error) ? error.
 export const canAudit = (member: Member | null) => !!member && ["admin", "compliance_manager", "lead_auditor", "auditor"].includes(member.role_code);
 export const canReview = (member: Member | null) => !!member && ["admin", "compliance_manager", "lead_auditor"].includes(member.role_code);
 export const label = (value: string) => value.replace(/_/g, " ").replace(/^\w/, (character) => character.toUpperCase());
+
+// Organisation-facing wording. The role codes are unchanged in the API; only how they are described here.
+export const roleLabels: Record<string, string> = {
+  admin: "Organisation admin",
+  compliance_manager: "Sustainability manager",
+  lead_auditor: "Lead reviewer",
+  auditor: "Assessor",
+  process_owner: "Action owner",
+  viewer: "Viewer",
+};
+export const roleSummaries: Record<string, string> = {
+  admin: "Manages people and settings, and can see every assessment.",
+  compliance_manager: "Runs assessments, reviews the criteria and signs off actions.",
+  lead_auditor: "Reviews assessment outcomes and confirms that closed actions were done.",
+  auditor: "Scores criteria and records the evidence behind each score.",
+  process_owner: "Completes the actions assigned to them and records what was done.",
+  viewer: "Reads assessments and reports. Cannot change anything.",
+};
+const ASSESSMENT_STATUS_LABELS: Record<string, string> = { in_progress: "In progress", reporting: "Preparing report", complete: "Complete" };
+const ASSESSMENT_STATUS_TONES: Record<string, string> = { in_progress: "blue", reporting: "amber", complete: "green" };
+export const assessmentStatusLabel = (status: string) => ASSESSMENT_STATUS_LABELS[status] ?? label(status);
+export const assessmentStatusTone = (status: string) => ASSESSMENT_STATUS_TONES[status] ?? "";
+export const firstName = (name: string) => name.trim().split(/\s+/)[0] || name;
+export const initials = (name: string) => name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "").join("") || "?";
 export const dateTime = (value?: string) => value ? new Date(value).toLocaleString() : "—";
 export const sourceLabel = (source: Source) => [source.documentTitle, `revision ${source.revision}`, source.section && `section ${source.section}`, source.clause && `clause ${source.clause}`, source.page && `page ${source.page}`].filter(Boolean).join(" · ");
 export const statusLabels: Record<AssessmentStatus, string> = { unassessed: "Not assessed", conforming: "Conforming", observation: "Observation", minor: "Minor finding", major: "Major finding", not_applicable: "Not applicable" };

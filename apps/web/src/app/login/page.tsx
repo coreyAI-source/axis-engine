@@ -1,19 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { Check } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { auth } from "@/lib/api";
+import { BrandLockup } from "@/components/Brand";
+
+const points = [
+  { title: "A clear readiness picture", text: "Every GSTC criterion scored, with the reasons behind each score." },
+  { title: "Evidence in one place", text: "Documents, photos and interview notes linked to the criterion they support." },
+  { title: "Actions with owners", text: "Each gap has an owner and a due date, and closes only once a second person has confirmed it." },
+];
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("admin@demo.local");
-  const [password, setPassword] = useState("changeme123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -21,8 +27,16 @@ export default function LoginPage() {
       const res = await auth.login(email, password);
       localStorage.setItem("axis_token", res.data.access_token);
       router.push("/dashboard");
-    } catch {
-      setError("Invalid credentials. Ensure the API is running on port 8000.");
+    } catch (err) {
+      // No response means the API could not be reached. Otherwise the status code says what happened.
+      const status = (err as { response?: { status?: number } }).response?.status;
+      if (status === undefined) setError("AXIS can't be reached right now. Check your connection, then try again.");
+      else if (status === 401) setError("Email or password is not correct.");
+      else if (status === 403) setError("This account is inactive. Ask your organisation admin to reactivate it.");
+      else if (status === 429) setError("Too many sign-in attempts. Wait a few minutes, then try again.");
+      else if (status === 422 || status === 400) setError("Enter a valid email address and password.");
+      else if (status >= 500) setError(`AXIS ran into a problem (HTTP ${status}). Try again shortly.`);
+      else setError(`Sign-in failed (HTTP ${status}). Try again.`);
     } finally {
       setLoading(false);
     }
@@ -30,86 +44,70 @@ export default function LoginPage() {
 
   return (
     <div className="login-wrap">
-      {/* Left panel */}
-      <div className="login-left">
-        <span className="brand-tile brand-tile-wide" style={{ alignSelf: "flex-start" }}>
-          <Image src="/brand/axis-logo-horizontal.png" alt="AXIS Auditing — Environmental science | Risk | Assurance" width={721} height={261} priority />
-        </span>
+      <aside className="login-left">
+        <BrandLockup />
 
         <div>
-          <p className="gradient-text" style={{ fontSize: 30, fontWeight: 700, lineHeight: 1.2, letterSpacing: "-0.03em", marginBottom: 12 }}>
-            From obligation to evidence — one integrated system.
+          <h1 className="login-headline">Know where your property stands, and what to do next.</h1>
+          <p className="login-lede">
+            Check your property against the GSTC Hotel Standard, keep the evidence in one place and track the actions that prepare you for certification.
           </p>
-          <p style={{ fontSize: 14, color: "var(--text-3)", lineHeight: 1.6, marginBottom: 32, maxWidth: 380 }}>
-            ISO management-system compliance and GSTC hotel sustainability audits, with evidence, findings and verified corrective actions in one place.
-          </p>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 32 }}>
-            {[
-              { label: "GSTC hotel audits", desc: "All 40 criteria and performance indicators of the GSTC Hotel Standard v4.0." },
-              { label: "Evidence-driven findings", desc: "Every outcome linked to documents, observations and interviews." },
-              { label: "Independent verification", desc: "Corrective actions close only when a different person verifies them." },
-            ].map((f) => (
-              <div key={f.label} style={{ display: "flex", gap: 12 }}>
-                <div style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0, marginTop: 1, background: "var(--accent-soft)", border: "1px solid rgba(110,182,218,0.3)", display: "grid", placeItems: "center" }}>
-                  <Check size={12} color="var(--accent)" strokeWidth={3} />
-                </div>
+          <div className="login-points">
+            {points.map((point) => (
+              <div key={point.title} className="login-point">
+                <span className="login-point-icon" aria-hidden="true"><Check size={15} strokeWidth={2.6} /></span>
                 <div>
-                  <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text)", marginBottom: 2 }}>{f.label}</div>
-                  <div style={{ fontSize: 12.5, color: "var(--text-3)" }}>{f.desc}</div>
+                  <strong>{point.title}</strong>
+                  <span>{point.text}</span>
                 </div>
               </div>
             ))}
           </div>
-
-          <p style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--brand-sand)", marginBottom: 18 }}>Environmental science &nbsp;|&nbsp; Risk &nbsp;|&nbsp; Assurance</p>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {["GSTC Hotel v4.0", "ISO 9001:2015", "ISO 14001", "ISO 45001:2018"].map((s) => (
-              <span key={s} className="badge badge-slate">{s}</span>
-            ))}
-          </div>
         </div>
-      </div>
 
-      {/* Right panel */}
-      <div className="login-right">
+        <p className="login-note">
+          AXIS prepares your property for certification. Only GSTC-accredited certification bodies can certify it.
+        </p>
+      </aside>
+
+      <main className="login-right">
         <div className="login-form-box">
-          <div style={{ marginBottom: 28 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: "var(--text)", letterSpacing: "-0.02em", marginBottom: 6 }}>
-              Welcome back
-            </h1>
-            <p style={{ fontSize: 13, color: "var(--text-3)" }}>Sign in to the compliance engine</p>
+          <div className="login-mobile-brand"><BrandLockup /></div>
+
+          <div style={{ marginBottom: 30 }}>
+            <h2 style={{ fontFamily: "var(--font-head)", fontSize: 26, fontWeight: 700, color: "var(--brand-navy)", letterSpacing: "-0.02em", marginBottom: 8 }}>
+              Sign in
+            </h2>
+            <p style={{ fontSize: 15, color: "var(--text-3)" }}>Use the email and password for your AXIS account.</p>
           </div>
 
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <div>
-              <label className="login-label">Email address</label>
+              <label className="login-label" htmlFor="login-email">Email address</label>
               <input
-                type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                className="login-input" required
+                id="login-email" type="email" autoComplete="email" value={email}
+                onChange={(e) => setEmail(e.target.value)} className="login-input" required
               />
             </div>
             <div>
-              <label className="login-label">Password</label>
+              <label className="login-label" htmlFor="login-password">Password</label>
               <input
-                type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                className="login-input" required
+                id="login-password" type="password" autoComplete="current-password" value={password}
+                onChange={(e) => setPassword(e.target.value)} className="login-input" required
               />
             </div>
 
-            {error && (
-              <div className="alert-error" style={{ padding: "10px 13px" }}>{error}</div>
-            )}
+            {error && <div role="alert" className="alert-error">{error}</div>}
 
-            <button type="submit" disabled={loading} className="login-btn" style={{ marginTop: 6 }}>
+            <button type="submit" disabled={loading} className="login-btn" style={{ marginTop: 4 }}>
               {loading
-                ? <><div className="spinner spinner-white" style={{ width: 15, height: 15 }} /> Signing in…</>
-                : "Sign in →"
+                ? <><div className="spinner spinner-white" style={{ width: 16, height: 16 }} /> Signing in…</>
+                : <>Sign in <ArrowRight size={17} /></>
               }
             </button>
           </form>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

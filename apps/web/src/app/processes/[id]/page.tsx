@@ -130,7 +130,7 @@ export default function ProcessDetailPage() {
         <Link href="/processes" style={{ color:"var(--muted)" }}
           onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = "var(--text-2)"}
           onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.color = "var(--muted)"}
-        >Processes</Link>
+        >ISO processes</Link>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="9 18 15 12 9 6"/>
         </svg>
@@ -226,7 +226,7 @@ export default function ProcessDetailPage() {
                       {riskBadgeClass[m.risk_level] && (
                         <span className={riskBadgeClass[m.risk_level]} style={{ padding:"3px 8px" }}>{m.risk_level}</span>
                       )}
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4a5163" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#A3AEBD" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
                         style={{ transform: expandedClause === m.mapping_id ? "rotate(180deg)" : "none", transition:"transform 150ms ease", flexShrink:0 }}>
                         <polyline points="6 9 12 15 18 9"/>
                       </svg>

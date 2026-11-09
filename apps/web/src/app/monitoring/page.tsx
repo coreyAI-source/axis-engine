@@ -65,8 +65,8 @@ export default function MonitoringPage() {
       {/* Header */}
       <div style={{ marginBottom:24 }}>
         <div className="eyebrow">ISO 9001 · 14001 · 45001</div>
-        <div className="page-heading">Monitoring</div>
-        <div className="page-subheading">Scheduled compliance checks across all processes</div>
+        <div className="page-heading">Recurring checks</div>
+        <div className="page-subheading">Scheduled checks across your ISO processes, with the next due date for each</div>
       </div>
 
       {/* Filter tabs */}

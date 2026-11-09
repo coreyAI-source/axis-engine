@@ -52,7 +52,7 @@ export default function ProcessesPage() {
       <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", flexWrap:"wrap", gap:16, marginBottom:28 }}>
         <div>
           <div className="eyebrow">ISO 9001 · 14001 · 45001</div>
-          <div className="page-heading">Processes</div>
+          <div className="page-heading">ISO processes</div>
           <div className="page-subheading">{data.length} processes mapped to ISO standards</div>
         </div>
         <input
@@ -104,7 +104,7 @@ export default function ProcessesPage() {
                       </div>
                       <div style={{ display:"flex", alignItems:"center", gap:10, flexShrink:0, marginLeft:16 }}>
                         <span className={catBadgeClass[p.category] || "badge badge-slate"}>{category}</span>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4a5163" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A3AEBD" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="9 18 15 12 9 6"/>
                         </svg>
                       </div>

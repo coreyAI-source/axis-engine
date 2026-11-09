@@ -38,7 +38,7 @@ Format as a numbered list. Be direct and professional.`;
       "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
       "Content-Type": "application/json",
       "HTTP-Referer": "http://localhost:3000",
-      "X-Title": "AXIS Compliance Engine",
+      "X-Title": "AXIS Environmental",
     },
     body: JSON.stringify({
       model: MODEL,
